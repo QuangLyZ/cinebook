@@ -39,7 +39,6 @@ class AuthController extends Controller
                     'email' => $googleUser->getEmail(),
                     // Tạo một mật khẩu ảo siêu dài ngẫu nhiên vì khách đăng nhập bằng Google
                     'password' => Hash::make(Str::random(24)),
-                    'phone' => '0000000000', // Đặt số điện thoại mặc định (do database bắt buộc)
                     'email_verified_at' => now(), // Đã xác thực bằng Google rồi nên không cần OTP nữa
                 ]);
             }
@@ -70,13 +69,11 @@ class AuthController extends Controller
             'password.required' => 'Mật khẩu đâu sếp ơi?',
         ]);
 
-        // Hỗ trợ đăng nhập bằng cả Email hoặc Số điện thoại
-        $credentials = ['password' => $request->password];
-        if (filter_var($request->email, FILTER_VALIDATE_EMAIL)) {
-            $credentials['email'] = $request->email;
-        } else {
-            $credentials['phone'] = $request->email;
-        }
+        // Hỗ trợ đăng nhập bằng Email
+        $credentials = [
+            'email' => $request->email,
+            'password' => $request->password
+        ];
 
         $remember = $request->has('remember');
 
@@ -105,14 +102,12 @@ class AuthController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'phone' => 'required|string|max:20',
             'password' => 'required|string|min:8|confirmed',
         ], [
             'name.required' => 'Sếp ơi, tên không được để trống nha!',
             'email.required' => 'Email cũng phải điền vào nè.',
             'email.email' => 'Email sai định dạng rồi sếp.',
             'email.unique' => 'Ối giời, email này có người xài rồi!',
-            'phone.required' => 'Số điện thoại đâu sếp ơi?',
             'password.required' => 'Mật khẩu là bắt buộc.',
             'password.min' => 'Mật khẩu phải dài ít nhất 8 ký tự nha.',
             'password.confirmed' => 'Hai mật khẩu sếp nhập không khớp nhau kìa.',
@@ -125,7 +120,6 @@ class AuthController extends Controller
         $userData = [
             'name' => $request->name,
             'email' => $request->email,
-            'phone' => $request->phone,
             'password' => Hash::make($request->password),
             'otp' => $otpCode
         ];

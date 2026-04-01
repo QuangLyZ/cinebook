@@ -70,7 +70,6 @@ class OtpController extends Controller
             $user = User::create([
                 'name' => $userData['name'],
                 'email' => $userData['email'],
-                'phone' => $userData['phone'],
                 'password' => $userData['password'],
                 'email_verified_at' => now(), // Xác thực luôn ngay lập tức
             ]);
