@@ -51,7 +51,7 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             \Log::error('Lỗi Google Login: ' . $e->getMessage());
             // Trả về lỗi chi tiết để sếp dễ debug
-            return redirect()->route('login')->withErrors(['email' => 'Lỗi: ' . $e->getMessage()]);
+            return redirect()->route('login')->withErrors(['google_error' => 'Lỗi Google Login: ' . $e->getMessage()]);
         }
     }
 
