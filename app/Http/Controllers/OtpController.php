@@ -58,7 +58,7 @@ class OtpController extends Controller
         $email = Session::get('verify_email');
 
         if (!$email) {
-            return redirect()->route('register')->with('error', 'Không tìm thấy phiên xác thực. Sếp vui lòng đăng ký lại nha!');
+            return redirect()->route('register')->with('error', 'Không tìm thấy phiên xác thực. Bạn vui lòng đăng ký lại nha!');
         }
 
         // Lấy thông tin khách hàng từ Cache
