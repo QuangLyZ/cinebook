@@ -98,6 +98,7 @@
                             <input id="customerName" name="customerName" type="text" placeholder="Họ và tên" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white text-sm focus:outline-none focus:border-red-500" required>
                             <input id="customerEmail" name="customerEmail" type="email" placeholder="Email nhận vé" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white text-sm focus:outline-none focus:border-red-500" required>
                             <input id="customerPhone" name="customerPhone" type="tel" placeholder="Số điện thoại" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white text-sm focus:outline-none focus:border-red-500" required>
+                            <p id="formError" class="text-sm text-red-400 mt-1 hidden"></p>
                         </div>
                     </div>
 
@@ -362,6 +363,7 @@
                                     seat.classList.add('border-gray-500');
                                 }
                                 updateSelectedSeatsLabel();
+                                saveSelectedSeats(); // Save to backend
                             });
                         });
 
@@ -392,13 +394,50 @@
                             applyVoucher();
                         });
 
-                        payButton.addEventListener('click', function () {
+                        const formError = document.getElementById('formError');
+
+                        function showFormError(message) {
+                            formError.textContent = message;
+                            formError.classList.remove('hidden');
+                        }
+
+                        function clearFormError() {
+                            formError.textContent = '';
+                            formError.classList.add('hidden');
+                        }
+
+                        function validateBookingForm() {
                             const name = nameField.value.trim();
                             const email = emailField.value.trim();
-                            const phone = phoneField.value.trim();
+                            const phone = phoneField.value.trim().replace(/\s+/g, '');
 
                             if (!name || !email || !phone) {
-                                alert('Vui lòng điền đầy đủ họ tên, email và số điện thoại để tiếp tục.');
+                                showFormError('Vui lòng điền đầy đủ họ tên, email và số điện thoại.');
+                                return false;
+                            }
+
+                            if (name.length < 3) {
+                                showFormError('Họ và tên phải có ít nhất 3 ký tự.');
+                                return false;
+                            }
+
+                            if (!emailField.checkValidity()) {
+                                showFormError('Email không hợp lệ.');
+                                return false;
+                            }
+
+                            const phoneRegex = /^(?:0|\+84)(3|5|7|8|9)\d{8}$/;
+                            if (!phoneRegex.test(phone)) {
+                                showFormError('Số điện thoại không hợp lệ. Vui lòng nhập số di động đúng định dạng 0xxxxxxxxx hoặc +84xxxxxxxxx.');
+                                return false;
+                            }
+
+                            clearFormError();
+                            return true;
+                        }
+
+                        payButton.addEventListener('click', function () {
+                            if (!validateBookingForm()) {
                                 return;
                             }
 

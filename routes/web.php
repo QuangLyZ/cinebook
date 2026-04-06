@@ -29,7 +29,8 @@ Route::get('/forgot-password', function () {
 })->name('forgot-password');
 
 Route::get('/movies', function () {
-    return view('movies.index');
+    $movies = App\Models\Movie::all();
+    return view('movies.index', compact('movies'));
 })->name('movies.index');
 
 Route::get('/cinemas', [CinemaController::class, 'index'])->name('cinemas.index');
@@ -51,3 +52,7 @@ use App\Http\Controllers\OtpController;
 Route::get('/otp/send', [OtpController::class, 'sendOtp'])->name('otp.send');
 Route::get('/otp/verify', [OtpController::class, 'showVerifyForm'])->name('otp.form');
 Route::post('/otp/verify', [OtpController::class, 'verifyOtp'])->name('otp.verify');
+// Route Theaters
+Route::get('/theaters', function () {
+    return view('theaters');
+})->name('theaters');
