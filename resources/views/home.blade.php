@@ -40,26 +40,26 @@
         </a>
     </div>
 
-    <!-- Movie Carousel (Mock grid for now) -->
+    <!-- Movie Carousel -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-        @for ($i = 1; $i <= 4; $i++)
+        @foreach ($nowShowing as $movie)
         <div class="group relative rounded-xl overflow-hidden bg-gray-800 transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-red-500/20">
-            <img src="https://images.unsplash.com/photo-1440404653325-ab127d49abc1?q=80&w=400&h=600&auto=format&fit=crop" class="w-full h-80 object-cover" alt="Movie Poster">
+            <img src="{{ $movie->poster ?? 'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?q=80&w=400&h=600&auto=format&fit=crop' }}" class="w-full h-80 object-cover" alt="{{ $movie->name }}">
             <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent opacity-90"></div>
             
             <div class="absolute bottom-0 w-full p-4">
                 <div class="flex items-center space-x-2 mb-2">
-                    <span class="bg-red-600 outline outline-1 outline-white text-white text-xs font-bold px-2 py-0.5 rounded">T18</span>
+                    <span class="bg-red-600 outline outline-1 outline-white text-white text-xs font-bold px-2 py-0.5 rounded">T{{ $movie->age_limit }}</span>
                     <span class="text-gray-300 text-xs"><i class="fa-solid fa-star text-yellow-500 mr-1"></i>4.8</span>
                 </div>
-                <h3 class="text-lg font-bold text-white mb-1 line-clamp-1">Phim Hành Động Mẫu {{ $i }}</h3>
-                <p class="text-gray-400 text-sm mb-3">Hành Động, Viễn Tưởng</p>
-                <a href="/booking/{{ $i }}" class="block w-full text-center bg-gray-700 group-hover:bg-red-600 text-white py-2 rounded font-medium transition-colors">
+                <h3 class="text-lg font-bold text-white mb-1 line-clamp-1">{{ $movie->name }}</h3>
+                <p class="text-gray-400 text-sm mb-3">{{ $movie->genre }}</p>
+                <a href="{{ route('booking.show', $movie->id) }}" class="block w-full text-center bg-gray-700 group-hover:bg-red-600 text-white py-2 rounded font-medium transition-colors">
                     MUA VÉ
                 </a>
             </div>
         </div>
-        @endfor
+        @endforeach
     </div>
 </div>
 
@@ -72,18 +72,18 @@
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-            @for ($i = 5; $i <= 8; $i++)
+            @foreach ($comingSoon as $movie)
             <div class="group relative rounded-xl overflow-hidden bg-gray-800">
-                <img src="https://images.unsplash.com/photo-1509281373149-e957c6296406?q=80&w=400&h=600&auto=format&fit=crop" class="w-full h-80 object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt="Movie Poster">
+                <img src="{{ $movie->poster ?? 'https://images.unsplash.com/photo-1509281373149-e957c6296406?q=80&w=400&h=600&auto=format&fit=crop' }}" class="w-full h-80 object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt="{{ $movie->name }}">
                 <div class="absolute top-3 right-3 bg-black/70 backdrop-blur-sm text-yellow-500 px-3 py-1 rounded-full text-sm font-bold border border-yellow-500/50">
-                    25.12.{{ date('Y') }}
+                    {{ \Carbon\Carbon::parse($movie->release_date)->format('d.m.Y') }}
                 </div>
                 <div class="absolute bottom-0 w-full p-4 bg-gradient-to-t from-gray-900 to-transparent">
-                    <h3 class="text-lg font-bold text-white mb-1">Phim Tình Cảm Mẫu {{ $i }}</h3>
-                    <p class="text-gray-400 text-sm">Lãng Mạn, Hài Hước</p>
+                    <h3 class="text-lg font-bold text-white mb-1">{{ $movie->name }}</h3>
+                    <p class="text-gray-400 text-sm">{{ $movie->genre }}</p>
                 </div>
             </div>
-            @endfor
+            @endforeach
         </div>
     </div>
 </div>
