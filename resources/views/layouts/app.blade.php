@@ -32,7 +32,7 @@
                     <div class="hidden md:flex items-baseline space-x-4 ml-10">
                         <a href="/" class="text-gray-300 hover:text-white px-3 py-2 rounded-md font-medium transition-colors">Trang Chủ</a>
                         <a href="/movies" class="text-gray-300 hover:text-white px-3 py-2 rounded-md font-medium transition-colors">Phim & Lịch Chiếu</a>
-                        <a href="#" class="text-gray-300 hover:text-white px-3 py-2 rounded-md font-medium transition-colors">Danh Sách Rạp</a>
+                        <a href="/theaters" class="text-gray-300 hover:text-white px-3 py-2 rounded-md font-medium transition-colors">Danh Sách Rạp</a>
                         <a href="/feedback" class="text-gray-300 hover:text-white px-3 py-2 rounded-md font-medium transition-colors">Góp Ý & Hỗ Trợ</a>
                     </div>
                 </div>

@@ -68,28 +68,31 @@
         <div class="md:col-span-3 space-y-6">
             <h2 class="text-xl font-bold text-white">CineBook Landmark 81 - {{ date('d/m/Y') }}</h2>
             
-            @for ($j = 1; $j <= 3; $j++)
+            @forelse($movies as $movie)
             <div class="flex flex-col md:flex-row bg-gray-800 rounded-xl border border-gray-700 overflow-hidden hover:border-gray-600 transition-colors">
-                <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=300&h=400&auto=format&fit=crop" class="w-full md:w-48 h-64 md:h-auto object-cover" alt="Poster">
+                <img src="{{ $movie->poster ?? 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=300&h=400&auto=format&fit=crop' }}" class="w-full md:w-48 h-64 md:h-auto object-cover" alt="Poster {{ $movie->name }}">
                 <div class="p-6 flex-1 flex flex-col">
                     <div class="flex justify-between items-start mb-2">
                         <div>
-                            <span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded mr-2">T18</span>
+                            <span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded mr-2">{{ $movie->age_limit ?? 'T16' }}</span>
                             <span class="text-xs border border-blue-500 text-blue-400 px-2 py-0.5 rounded">2D Phụ Đề</span>
                         </div>
-                        <div class="text-yellow-500 text-sm font-bold"><i class="fa-solid fa-star mr-1"></i>9.5</div>
+                        <div class="text-yellow-500 text-sm font-bold"><i class="fa-solid fa-star mr-1"></i>{{ $movie->rating ?? 8.5 }}</div>
                     </div>
                     
-                    <h3 class="text-2xl font-bold text-white mb-2">Avengers: Secret Wars {{ $j }}</h3>
+                    <h3 class="text-2xl font-bold text-white mb-2">{{ $movie->name }}</h3>
+                    @if($movie->description)
+                    <p class="text-sm text-gray-300 mb-2">{{ $movie->description }}</p>
+                    @endif
                     <p class="text-sm text-gray-400 mb-4 flex items-center">
-                        <i class="fa-regular fa-clock mr-2"></i> 150 Phút | Hành Động, Viễn Tưởng
+                        <i class="fa-regular fa-clock mr-2"></i> {{ is_numeric($movie->duration) ? $movie->duration . ' Phút' : ($movie->duration ?? '120 Phút') }} | {{ $movie->genre ?? 'Hành Động' }}
                     </p>
                     
                     <div class="mt-auto">
                         <p class="text-sm font-semibold text-gray-300 mb-3">Chọn suất chiếu:</p>
                         <div class="flex flex-wrap gap-3">
-                            @foreach(['09:30', '11:45', '14:20', '17:00', '19:45', '22:15'] as $time)
-                            <a href="/booking/1" class="px-4 py-2 bg-gray-900 border border-gray-600 text-gray-200 rounded-md hover:border-red-500 hover:text-red-500 transition-colors text-sm font-medium">
+                            @foreach($movie->show_times ?? ['09:30', '11:45', '14:20', '17:00', '19:45', '22:15'] as $time)
+                            <a href="/booking/{{ $movie->id }}" class="px-4 py-2 bg-gray-900 border border-gray-600 text-gray-200 rounded-md hover:border-red-500 hover:text-red-500 transition-colors text-sm font-medium">
                                 {{ $time }}
                             </a>
                             @endforeach
@@ -97,7 +100,11 @@
                     </div>
                 </div>
             </div>
-            @endfor
+            @empty
+            <div class="bg-gray-800 rounded-xl border border-gray-700 p-8 text-gray-300">
+                Hiện chưa có phim để hiển thị. Hãy chạy lại `php artisan migrate --seed` để thêm dữ liệu mẫu.
+            </div>
+            @endforelse
             
         </div>
     </div>
