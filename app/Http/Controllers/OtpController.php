@@ -68,11 +68,10 @@ class OtpController extends Controller
         if ($userData && $request->otp == $userData['otp']) {
             // Đúng thì CHÍNH THỨC TẠO USER VÀO DATABASE
             $user = User::create([
-                'name' => $userData['name'],
+                'fullname' => $userData['fullname'],
                 'email' => $userData['email'],
                 'phone' => $userData['phone'],
                 'password' => $userData['password'],
-                'email_verified_at' => now(), // Xác thực luôn ngay lập tức
             ]);
 
             // Xóa rác Cache và Session cho sạch sẽ

@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\CinemaController;
 use App\Http\Controllers\SendEmailController;
 use Illuminate\Support\Facades\Route;
+
 Route::get('/sendEmail', [SendEmailController::class, 'send'])->name('sendEmail');
 Route::get('/', function () {
     return view('home');
@@ -29,9 +32,10 @@ Route::get('/movies', function () {
     return view('movies.index');
 })->name('movies.index');
 
-Route::get('/booking/{id}', function () {
-    return view('booking.show');
-})->name('booking.show');
+Route::get('/cinemas', [CinemaController::class, 'index'])->name('cinemas.index');
+Route::get('/cinemas/{cinema}', [CinemaController::class, 'show'])->name('cinemas.show');
+
+Route::get('/booking/{id}', [BookingController::class, 'show'])->name('booking.show');
 
 Route::get('/feedback', function () {
     return view('feedback');

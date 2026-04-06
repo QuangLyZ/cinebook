@@ -6,11 +6,13 @@
     <div class="bg-gray-900 border-b border-gray-800 pt-8 pb-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-6">
-                <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=100&h=150&auto=format&fit=crop" class="w-16 h-24 object-cover rounded shadow" alt="Poster">
+                <img src="{{ $posterUrl }}" class="w-16 h-24 object-cover rounded shadow" alt="Poster">
                 <div>
-                    <h1 class="text-2xl font-bold mb-1">Avengers: Secret Wars</h1>
-                    <p class="text-gray-400 text-sm">CineBook Landmark 81 | Rạp 3</p>
-                    <p class="text-red-500 font-medium text-sm mt-1">Hôm nay - 19:45</p>
+                    <h1 class="text-2xl font-bold mb-1">{{ $showtime->movie_name ?? 'Suất chiếu đang cập nhật' }}</h1>
+                    <p class="text-gray-400 text-sm">
+                        {{ $showtime->cinema_name ?? 'CineBook' }} | {{ $showtime->room_name ?? 'Phòng chiếu đang cập nhật' }}
+                    </p>
+                    <p class="text-red-500 font-medium text-sm mt-1">{{ $showDateLabel }} - {{ $showTimeLabel }}</p>
                 </div>
             </div>
             
