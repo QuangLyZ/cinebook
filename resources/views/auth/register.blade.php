@@ -32,11 +32,6 @@
                     @error('email') <span class="text-xs text-red-400 mt-1 block drop-shadow-md">{{ $message }}</span> @enderror
                 </div>
                 <div>
-                    <label for="phone" class="block text-sm font-medium text-gray-200 mb-1">Số Điện Thoại</label>
-                    <input id="phone" name="phone" type="tel" value="{{ old('phone') }}" required class="appearance-none relative block w-full px-4 py-3 border border-white/30 bg-transparent text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 sm:text-sm transition-all placeholder-gray-400 shadow-inner" placeholder="090 123 4567">
-                    @error('phone') <span class="text-xs text-red-400 mt-1 block drop-shadow-md">{{ $message }}</span> @enderror
-                </div>
-                <div>
                     <label for="password" class="block text-sm font-medium text-gray-200 mb-1">Mật khẩu</label>
                     <input id="password" name="password" type="password" autocomplete="new-password" required class="appearance-none relative block w-full px-4 py-3 border border-white/30 bg-transparent text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 sm:text-sm transition-all placeholder-gray-400 shadow-inner" placeholder="••••••••">
                     @error('password') <span class="text-xs text-red-400 mt-1 block drop-shadow-md">{{ $message }}</span> @enderror

@@ -17,17 +17,16 @@ class AuthController extends Controller
     // Bắt đầu quy trình đăng nhập Google
     public function redirectToGoogle()
     {
-        return Socialite::driver('google')->redirect();
+        // GRACE: Bat buoc dung stateless de tranh loi session mismatch tren local
+        return Socialite::driver('google')->stateless()->redirect();
     }
 
     // Xử lý dữ liệu Google trả về
     public function handleGoogleCallback()
     {
         try {
-            // Thêm chiêu bypass SSL check ngay tại đây để chạy local mượt mà
-            $googleUser = Socialite::driver('google')
-                ->setHttpClient(new \GuzzleHttp\Client(['verify' => false]))
-                ->user();
+            // GRACE: Dung stateless de bo qua kiem tra session state (rat de loi tren local)
+            $googleUser = Socialite::driver('google')->stateless()->user();
             
             // Tìm xem email này đã tồn tại trong hệ thống chưa
             $user = User::where('email', $googleUser->getEmail())->first();
@@ -41,6 +40,7 @@ class AuthController extends Controller
                     'password' => Hash::make(Str::random(24)),
                     'phone' => '0000000000', // Đặt số điện thoại mặc định (do database bắt buộc)
                     'google_id' => $googleUser->getId(),
+                    'email_verified_at' => now(), // Đã xác thực bằng Google rồi nên không cần OTP nữa
                 ]);
             }
             
@@ -49,9 +49,20 @@ class AuthController extends Controller
             return redirect()->route('home')->with('success', 'Đăng nhập bằng Google thành công! Quá mượt! 🎉');
             
         } catch (\Exception $e) {
-            \Log::error('Lỗi Google Login: ' . $e->getMessage());
-            // Trả về lỗi chi tiết để sếp dễ debug
-            return redirect()->route('login')->withErrors(['email' => 'Lỗi: ' . $e->getMessage()]);
+            \Log::error('--- BUG DETECTOR: GOOGLE LOGIN FAILED ---');
+            \Log::error('Message: ' . $e->getMessage());
+            \Log::error('File: ' . $e->getFile() . ':' . $e->getLine());
+            
+            // Neu co phan hoi tu Guzzle, ghi lai luon de xem loi SSL hay loi gi khac
+            if (method_exists($e, 'hasResponse') && $e->hasResponse()) {
+                \Log::error('Response: ' . $e->getResponse()->getBody()->getContents());
+            }
+            
+            \Log::error('Trace: ' . $e->getTraceAsString());
+            \Log::error('--- END BUG DETECTOR ---');
+
+            $errorDetail = $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine();
+            return redirect()->route('login')->withErrors(['google_error' => 'Lỗi Google Login: ' . $errorDetail]);
         }
     }
 
@@ -114,7 +125,6 @@ class AuthController extends Controller
             'email.required' => 'Email cũng phải điền vào nè.',
             'email.email' => 'Email sai định dạng rồi sếp.',
             'email.unique' => 'Ối giời, email này có người xài rồi!',
-            'phone.required' => 'Số điện thoại đâu sếp ơi?',
             'password.required' => 'Mật khẩu là bắt buộc.',
             'password.min' => 'Mật khẩu phải dài ít nhất 8 ký tự nha.',
             'password.confirmed' => 'Hai mật khẩu sếp nhập không khớp nhau kìa.',
