@@ -30,7 +30,7 @@ class OtpController extends Controller
 
         // Bắn email giao diện HTML xịn xò
         try {
-            Mail::send('emails.otp', ['otp' => $newOtpCode, 'userName' => $userData['name']], function ($message) use ($email) {
+            Mail::send('emails.otp', ['otp' => $newOtpCode, 'userName' => $userData['fullname']], function ($message) use ($email) {
                 $message->to($email)->subject('🔒 [CINEBOOK] Mã Xác Thực OTP Của Bạn');
             });
         } catch (\Exception $e) {
@@ -70,7 +70,9 @@ class OtpController extends Controller
             $user = User::create([
                 'fullname' => $userData['fullname'],
                 'email' => $userData['email'],
+                'phone' => $userData['phone'],
                 'password' => $userData['password'],
+                'admin_role' => $userData['admin_role'] ?? false,
             ]);
 
             // Xóa rác Cache và Session cho sạch sẽ
@@ -81,7 +83,8 @@ class OtpController extends Controller
             Auth::login($user);
 
             // Hiện thông báo mừng rỡ
-            return redirect()->route('home')->with('success', 'Tuyệt vời ông mặt trời! Đăng ký & Xác thực thành công rực rỡ! 🎉');
+            return redirect()->to($user->admin_role ? route('admin.dashboard') : route('home'))
+                ->with('success', 'Tuyệt vời ông mặt trời! Đăng ký & Xác thực thành công rực rỡ! 🎉');
         }
 
         // Khôi phục lại session verify_email để họ nhập lại cho tiện

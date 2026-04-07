@@ -14,6 +14,11 @@ use App\Mail\SendOtpMail;
 
 class AuthController extends Controller
 {
+    protected function redirectAfterLogin(User $user)
+    {
+        return $user->admin_role ? route('admin.dashboard') : route('home');
+    }
+
     // Bắt đầu quy trình đăng nhập Google
     public function redirectToGoogle()
     {
@@ -40,13 +45,13 @@ class AuthController extends Controller
                     'password' => Hash::make(Str::random(24)),
                     'phone' => '0000000000', // Đặt số điện thoại mặc định (do database bắt buộc)
                     'google_id' => $googleUser->getId(),
-                    'email_verified_at' => now(), // Đã xác thực bằng Google rồi nên không cần OTP nữa
+                    'admin_role' => false,
                 ]);
             }
             
             // Cho đăng nhập luôn
             Auth::login($user);
-            return redirect()->route('home')->with('success', 'Đăng nhập bằng Google thành công! Quá mượt! 🎉');
+            return redirect()->to($this->redirectAfterLogin($user))->with('success', 'Đăng nhập bằng Google thành công! Quá mượt! 🎉');
             
         } catch (\Exception $e) {
             \Log::error('--- BUG DETECTOR: GOOGLE LOGIN FAILED ---');
@@ -95,7 +100,9 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
-            return redirect()->intended(route('home'))->with('success', 'Đăng nhập thành công! Mời sếp vào nhà! 🎉');
+            /** @var User $user */
+            $user = Auth::user();
+            return redirect()->to($this->redirectAfterLogin($user))->with('success', 'Đăng nhập thành công! Mời sếp vào nhà! 🎉');
         }
 
         return back()->withErrors([
@@ -139,6 +146,7 @@ class AuthController extends Controller
             'email' => trim($request->email),
             'phone' => trim($request->phone),
             'password' => Hash::make($request->password),
+            'admin_role' => false,
             'otp' => $otpCode
         ];
 

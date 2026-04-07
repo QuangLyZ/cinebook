@@ -4,10 +4,10 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class User extends Authenticatable
 {
@@ -25,7 +25,10 @@ class User extends Authenticatable
         'phone',
         'security_code',
         'google_id',
+        'admin_role',
+        'email_verified_at',
         'created_at',
+        'updated_at',
     ];
 
     protected $hidden = [
@@ -41,6 +44,7 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
+            'admin_role' => 'boolean',
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
