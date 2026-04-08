@@ -1,9 +1,11 @@
-<?php
+﻿<?php
 
 use App\Http\Controllers\SendEmailController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\OtpController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CinemaController;
+use App\Models\Setting;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/sendEmail', [SendEmailController::class, 'send'])->name('sendEmail');
@@ -33,10 +35,9 @@ Route::get('/forgot-password', function () {
 // Movies
 Route::get('/movies', [MovieController::class, 'list'])->name('movies.index');
 
-// Cinemas (Thêm route này để sửa lỗi Route [cinemas.index] not defined)
-Route::get('/cinemas', function () {
-    return view('home'); // Tạm thời trỏ về home hoặc trang rạp nếu có
-})->name('cinemas.index');
+// Cinemas
+Route::get('/cinemas', [CinemaController::class, 'index'])->name('cinemas.index');
+Route::get('/cinemas/{id}', [CinemaController::class, 'show'])->name('cinemas.show');
 
 // Booking
 Route::get('/booking/{id}', [MovieController::class, 'show'])->name('booking.show');
@@ -97,10 +98,31 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     })->name('actions');
 
     Route::get('/settings', function () use ($adminTabs) {
+        $settings = Setting::all()->pluck('value', 'key');
         return view('admin.home', [
             'activeTab' => 'settings',
             'pageTitle' => $adminTabs['settings'],
             'adminTabs' => $adminTabs,
+            'settings' => $settings,
         ]);
     })->name('settings');
+
+    Route::post('/settings', function (\Illuminate\Http\Request $request) {
+        $data = $request->except('_token');
+        
+        // Chế độ checkbox
+        if (!isset($data['email_notification_active'])) {
+            $data['email_notification_active'] = 'false';
+        }
+
+        foreach ($data as $key => $value) {
+            Setting::updateOrCreate(['key' => $key], ['value' => $value]);
+        }
+
+        return back()->with('success', 'Cấu hình hệ thống đã được cập nhật thành công!');
+    })->name('settings.update');
 });
+
+
+
+
