@@ -9,19 +9,6 @@ define('LARAVEL_START', microtime(true));
 // Register the Composer autoloader...
 require __DIR__.'/vendor/autoload.php';
 
-// --- GRACE AUTOMATION START ---
-// Tu dong don dep cache/config moi khi chay "serve" de fix loi Login Google cho sep Thien An
-$input = new ArgvInput;
-if ($input->getFirstArgument() === 'serve') {
-    echo "\n[GRACE] Dang don dep he thong de fix loi Login Google... ✨\n";
-    passthru('php artisan config:clear');
-    passthru('php artisan route:clear');
-    passthru('php artisan cache:clear');
-    passthru('php artisan view:clear');
-    echo "[GRACE] Da xong! Chuc sep code vui ve nhe! 🚀\n\n";
-}
-// --- GRACE AUTOMATION END ---
-
 // Bootstrap Laravel and handle the command...
 /** @var Application $app */
 $app = require_once __DIR__.'/bootstrap/app.php';
