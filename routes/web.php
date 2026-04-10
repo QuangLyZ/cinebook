@@ -34,9 +34,11 @@ Route::get('/forgot-password', function () {
 Route::get('/movies', [MovieController::class, 'list'])->name('movies.index');
 
 // Cinemas (Thêm route này để sửa lỗi Route [cinemas.index] not defined)
+
 Route::get('/cinemas', function () {
-    return view('theaters'); // Tạm thời trỏ về home hoặc trang rạp nếu có
+    return view('theaters');
 })->name('cinemas.index');
+Route::get('/cinemas/{id}', [CinemaController::class, 'show'])->name('cinemas.show');
 
 // Booking
 Route::get('/booking/{id}', [MovieController::class, 'show'])->name('booking.show');
