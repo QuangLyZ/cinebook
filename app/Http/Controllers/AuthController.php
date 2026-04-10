@@ -14,6 +14,11 @@ use App\Mail\SendOtpMail;
 
 class AuthController extends Controller
 {
+    protected function redirectAfterLogin(User $user)
+    {
+        return $user->admin_role ? route('admin.dashboard') : route('home');
+    }
+
     // Bắt đầu quy trình đăng nhập Google
     public function redirectToGoogle()
     {
@@ -34,17 +39,19 @@ class AuthController extends Controller
             if (!$user) {
                 // Nếu chưa có, tạo tài khoản mới toanh cho khách
                 $user = User::create([
-                    'name' => $googleUser->getName(),
+                    'fullname' => $googleUser->getName(),
                     'email' => $googleUser->getEmail(),
                     // Tạo một mật khẩu ảo siêu dài ngẫu nhiên vì khách đăng nhập bằng Google
                     'password' => Hash::make(Str::random(24)),
-                    'email_verified_at' => now(), // Đã xác thực bằng Google rồi nên không cần OTP nữa
+                    'phone' => '0000000000', // Đặt số điện thoại mặc định (do database bắt buộc)
+                    'google_id' => $googleUser->getId(),
+                    'admin_role' => false,
                 ]);
             }
             
             // Cho đăng nhập luôn
             Auth::login($user);
-            return redirect()->route('home')->with('success', 'Đăng nhập bằng Google thành công! Quá mượt! 🎉');
+            return redirect()->to($this->redirectAfterLogin($user))->with('success', 'Đăng nhập bằng Google thành công! Quá mượt! 🎉');
             
         } catch (\Exception $e) {
             \Log::error('--- BUG DETECTOR: GOOGLE LOGIN FAILED ---');
@@ -79,17 +86,23 @@ class AuthController extends Controller
             'password.required' => 'Mật khẩu đâu sếp ơi?',
         ]);
 
-        // Hỗ trợ đăng nhập bằng Email
-        $credentials = [
-            'email' => $request->email,
-            'password' => $request->password
-        ];
+        // Hỗ trợ đăng nhập bằng cả Email hoặc Số điện thoại
+        $login = trim($request->email);
+
+        $credentials = ['password' => $request->password];
+        if (filter_var($login, FILTER_VALIDATE_EMAIL)) {
+            $credentials['email'] = $login;
+        } else {
+            $credentials['phone'] = $login;
+        }
 
         $remember = $request->has('remember');
 
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
-            return redirect()->intended(route('home'))->with('success', 'Đăng nhập thành công! Mời sếp vào nhà! 🎉');
+            /** @var User $user */
+            $user = Auth::user();
+            return redirect()->to($this->redirectAfterLogin($user))->with('success', 'Đăng nhập thành công! Mời sếp vào nhà! 🎉');
         }
 
         return back()->withErrors([
@@ -111,7 +124,8 @@ class AuthController extends Controller
         // 1. Kiểm tra dữ liệu đầu vào (Validation)
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'email' => 'required|string|email|max:255|unique:Users,email',
+            'phone' => 'required|string|max:20',
             'password' => 'required|string|min:8|confirmed',
         ], [
             'name.required' => 'Sếp ơi, tên không được để trống nha!',
@@ -128,9 +142,11 @@ class AuthController extends Controller
 
         // 3. Gói ghém toàn bộ thông tin đăng ký của khách + mã OTP vào một cục
         $userData = [
-            'name' => $request->name,
-            'email' => $request->email,
+            'fullname' => trim($request->name),
+            'email' => trim($request->email),
+            'phone' => trim($request->phone),
             'password' => Hash::make($request->password),
+            'admin_role' => false,
             'otp' => $otpCode
         ];
 
@@ -140,13 +156,13 @@ class AuthController extends Controller
 
         // 5. Gửi Email
         try {
-            Mail::to($request->email)->send(new SendOtpMail($otpCode, $request->name));
+            Mail::to(trim($request->email))->send(new SendOtpMail($otpCode, trim($request->name)));
         } catch (\Exception $e) {
             \Log::error('Lỗi gửi mail OTP: ' . $e->getMessage());
         }
 
         // 6. Chuyển hướng sang trang nhập OTP, kèm theo cái email để biết đang xác thực cho ai
-        \Illuminate\Support\Facades\Session::put('verify_email', $request->email);
+        \Illuminate\Support\Facades\Session::put('verify_email', trim($request->email));
         return redirect()->route('otp.form')
             ->with('success', 'Mã xác thực OTP đã được gửi. Vui lòng kiểm tra email của bạn để tiếp tục!');
     }
