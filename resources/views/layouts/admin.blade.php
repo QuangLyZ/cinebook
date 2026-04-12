@@ -35,7 +35,7 @@
                         $adminNav = [
                             'dashboard' => ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'icon' => 'fa-chart-line'],
                             'management' => ['label' => 'Quản lý', 'route' => 'admin.management', 'icon' => 'fa-layer-group'],
-                            'posts' => ['label' => 'Bài viết', 'route' => 'admin.posts', 'icon' => 'fa-newspaper'],
+                            'posts' => ['label' => 'Bài viết', 'route' => 'admin.posts.index', 'icon' => 'fa-newspaper'],
                             'actions' => ['label' => 'Action', 'route' => 'admin.actions', 'icon' => 'fa-bolt'],
                             'settings' => ['label' => 'Cài đặt', 'route' => 'admin.settings', 'icon' => 'fa-sliders'],
                         ];
