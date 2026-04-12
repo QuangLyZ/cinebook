@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\SendEmailController;
 use App\Http\Controllers\Admin\VoucherController;
+use App\Http\Controllers\AccountController;
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\OtpController;
 use App\Http\Controllers\AuthController;
@@ -41,7 +43,8 @@ Route::get('/cinemas', [CinemaController::class, 'index'])->name('cinemas.index'
 Route::get('/cinemas/{id}', [CinemaController::class, 'show'])->name('cinemas.show');
 
 // Booking
-Route::get('/booking/{id}', [MovieController::class, 'show'])->name('booking.show');
+Route::get('/booking/{id}', [BookingController::class, 'show'])->name('booking.show');
+Route::post('/booking/{id}/checkout', [BookingController::class, 'checkout'])->name('booking.checkout');
 
 // Feedback
 Route::get('/feedback', function () {
@@ -50,6 +53,10 @@ Route::get('/feedback', function () {
 
 Route::post('/feedback', function (\Illuminate\Http\Request $request) {
     return back()->with('success', 'Cảm ơn sếp đã gửi phản hồi nha!');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/account', [AccountController::class, 'index'])->name('account.index');
 });
 
 // OTP Routes
@@ -120,6 +127,4 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         return back()->with('success', 'Cấu hình hệ thống đã được cập nhật thành công!');
     })->name('settings.update');
 });
-
-
 

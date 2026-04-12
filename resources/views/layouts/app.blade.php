@@ -48,6 +48,9 @@
                         <a href="/register" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium shadow transition-colors">Đăng Ký</a>
                     @else
                         <div class="relative flex items-center gap-3">
+                            <a href="{{ route('account.index') }}" class="hidden rounded-lg border border-gray-700 px-3 py-2 text-sm font-medium text-gray-300 transition-colors hover:border-gray-600 hover:text-white md:inline-flex">
+                                Tài khoản
+                            </a>
                             <span class="text-sm font-medium">{{ Auth::user()->name ?? 'User' }}</span>
                             <!-- For simplicity in UI mock, logout form is omitted -->
                             <form action="{{ route('logout') }}" method="POST" class="inline">
