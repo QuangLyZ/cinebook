@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use App\Http\Controllers\SendEmailController;
 use App\Http\Controllers\Admin\VoucherController;
@@ -119,6 +119,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
         return back()->with('success', 'Cấu hình hệ thống đã được cập nhật thành công!');
     })->name('settings.update');
+
+    // Admin Management Resources
+    Route::resource('movies', App\Http\Controllers\Admin\MovieController::class);
+    Route::resource('cinemas', App\Http\Controllers\Admin\CinemaController::class);
+    Route::resource('showtimes', App\Http\Controllers\Admin\ShowtimeController::class);
+    Route::resource('tickets', App\Http\Controllers\Admin\TicketController::class);
+    Route::resource('users', App\Http\Controllers\Admin\UserController::class);
+    Route::resource('posts', App\Http\Controllers\Admin\PostController::class);
 });
 
 
