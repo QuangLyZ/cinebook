@@ -10,7 +10,12 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CinemaController;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PostController;
 
+Route::post('/upload-image', [App\Http\Controllers\PostController::class, 'uploadImage'])
+    ->name('upload.image');
+Route::get('/admin/posts', [PostController::class, 'index'])->name('admin.posts');
+Route::post('/admin/posts', [PostController::class, 'store'])->name('admin.posts.store');
 Route::get('/sendEmail', [SendEmailController::class, 'send'])->name('sendEmail');
 
 // Trang chủ

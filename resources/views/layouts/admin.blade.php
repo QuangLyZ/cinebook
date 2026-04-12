@@ -12,7 +12,51 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+
+<!-- CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<!-- JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    flatpickr("#publish_at", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        time_24hr: true,
+        minuteIncrement: 1,
+        defaultDate: "today",
+        minDate: "today"
+    });
+});
+</script>
+<style>
+.flatpickr-calendar {
+    background: #020617;
+    border: 1px solid #374151;
+    color: white;
+}
+
+.flatpickr-day {
+    color: white;
+}
+
+.flatpickr-day.selected {
+    background: #ef4444;
+    border-color: #ef4444;
+}
+
+.flatpickr-time input {
+    color: white;
+    background: #020617;
+}
+</style>
 </head>
+
 <body class="min-h-screen bg-gray-950 text-gray-100">
     <div class="min-h-screen lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
         <aside class="hidden border-r border-gray-800 bg-gray-950 lg:flex lg:flex-col">
@@ -119,5 +163,6 @@
             </main>
         </div>
     </div>
+   @yield('scripts') 
 </body>
 </html>
