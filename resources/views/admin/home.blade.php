@@ -275,61 +275,6 @@
             </div>
         </section>
 
-    @elseif ($activeTab === 'management')
-        <div class="max-w-7xl mx-auto space-y-8 animate-[fadeIn_0.5s_ease-in-out]">
-            <div class="mb-8">
-                <h2 class="text-3xl font-extrabold tracking-tight text-white md:text-4xl">Quản Lý Trung Tâm</h2>
-                <p class="mt-3 text-gray-400">Chọn một phân hệ để bắt đầu thao tác quản lý dữ liệu.</p>
-            </div>
-
-            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                @php
-                    $managementModules = [
-                        ['name' => 'Quản lý Phim', 'desc' => 'Thêm, sửa, xóa danh sách phim và poster.', 'icon' => 'fa-film', 'route' => route('admin.movies.index'), 'color' => 'bg-red-500/10 text-red-500', 'border' => 'hover:border-red-500/50'],
-                        ['name' => 'Quản lý Rạp', 'desc' => 'Thiết lập danh sách rạp và sơ đồ phòng chiếu.', 'icon' => 'fa-building', 'route' => route('admin.cinemas.index'), 'color' => 'bg-sky-500/10 text-sky-500', 'border' => 'hover:border-sky-500/50'],
-                        ['name' => 'Quản lý Suất Chiếu', 'desc' => 'Xếp lịch chiếu phim cho các phòng vé.', 'icon' => 'fa-calendar-days', 'route' => route('admin.showtimes.index'), 'color' => 'bg-emerald-500/10 text-emerald-500', 'border' => 'hover:border-emerald-500/50'],
-                        ['name' => 'Quản lý Vé & Payment', 'desc' => 'Kiểm soát giao dịch và doanh thu bán vé.', 'icon' => 'fa-ticket', 'route' => route('admin.tickets.index'), 'color' => 'bg-amber-500/10 text-amber-500', 'border' => 'hover:border-amber-500/50'],
-                        ['name' => 'Khách Hàng', 'desc' => 'Phân tích thể loại và khung giờ người dùng ưa thích.', 'icon' => 'fa-users', 'route' => route('admin.users.index'), 'color' => 'bg-purple-500/10 text-purple-500', 'border' => 'hover:border-purple-500/50'],
-                    ];
-                @endphp
-
-                @foreach ($managementModules as $mod)
-                    <a href="{{ $mod['route'] }}" class="group block rounded-3xl border border-gray-800 bg-gray-900/60 p-6 transition-all duration-300 {{ $mod['border'] }} hover:bg-gray-800/80 hover:shadow-lg hover:-translate-y-1">
-                        <div class="flex items-center gap-4">
-                            <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl {{ $mod['color'] }} transition-transform group-hover:scale-110">
-                                <i class="fa-solid {{ $mod['icon'] }} text-2xl"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-xl font-bold text-white transition-colors group-hover:text-gray-100">{{ $mod['name'] }}</h3>
-                                <p class="mt-1 text-sm text-gray-400 line-clamp-2">{{ $mod['desc'] }}</p>
-                            </div>
-                        </div>
-                        <div class="mt-6 flex items-center justify-between border-t border-gray-800/60 pt-4">
-                            <span class="text-sm font-semibold text-gray-500 transition-colors group-hover:text-white">Truy cập phân hệ</span>
-                            <i class="fa-solid fa-arrow-right text-gray-600 transition-colors group-hover:text-white group-hover:translate-x-1 duration-300"></i>
-                        </div>
-                    </a>
-                @endforeach
-            </div>
-        </div>
-
-    @elseif ($activeTab === 'posts')
-        <div class="flex min-h-[500px] items-center justify-center rounded-[2rem] border border-dashed border-gray-700 bg-gray-900/40 p-8 text-center animate-[fadeIn_0.5s_ease-in-out]">
-            <div>
-                <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-500/10 text-emerald-500">
-                    <i class="fa-solid fa-newspaper text-3xl"></i>
-                </div>
-                <h2 class="text-2xl font-bold text-white mb-2">Quản lý Bài Viết</h2>
-                <p class="text-gray-400 max-w-md mx-auto mb-6">
-                    Phân hệ bài viết được quản lý kết nối. Bạn có thể xem danh sách bài đăng và tác giả tại đây.
-                </p>
-                <a href="{{ route('admin.posts.index') }}" class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-900/30 transition hover:bg-emerald-700">
-                    Danh sách bài đăng
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-            </div>
-        </div>
-
     @else
         <!-- Placeholder cho các Tab chưa làm -->
         <div class="flex min-h-[500px] items-center justify-center rounded-[2rem] border border-dashed border-gray-700 bg-gray-900/40 p-8 text-center animate-[fadeIn_0.5s_ease-in-out]">
@@ -351,7 +296,6 @@
         </div>
     @endif
 @endsection
-
 
 
 

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\SendEmailController;
+use App\Http\Controllers\Admin\VoucherController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\OtpController;
 use App\Http\Controllers\AuthController;
@@ -89,13 +90,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         ]);
     })->name('posts');
 
-    Route::get('/actions', function () use ($adminTabs) {
-        return view('admin.home', [
-            'activeTab' => 'actions',
-            'pageTitle' => $adminTabs['actions'],
-            'adminTabs' => $adminTabs,
-        ]);
-    })->name('actions');
+    Route::get('/actions', [VoucherController::class, 'index'])->name('actions');
+    Route::post('/actions/vouchers', [VoucherController::class, 'store'])->name('vouchers.store');
+    Route::put('/actions/vouchers/{voucher}', [VoucherController::class, 'update'])->name('vouchers.update');
+    Route::delete('/actions/vouchers/{voucher}', [VoucherController::class, 'destroy'])->name('vouchers.destroy');
 
     Route::get('/settings', function () use ($adminTabs) {
         $settings = Setting::all()->pluck('value', 'key');
@@ -130,7 +128,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);
     Route::resource('posts', App\Http\Controllers\Admin\PostController::class);
 });
-
 
 
 
