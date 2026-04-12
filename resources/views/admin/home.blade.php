@@ -275,6 +275,165 @@
             </div>
         </section>
 
+    @elseif ($activeTab === 'management')
+        @php
+            $modules = [
+                [
+                    'title'   => 'Quản lý Phim',
+                    'desc'    => 'Thêm, sửa, xoá phim, poster và thông tin nội dung.',
+                    'icon'    => 'fa-film',
+                    'color'   => 'red',
+                    'count_label' => 'Phim trong hệ thống',
+                    'count'   => \App\Models\Movie::count(),
+                    'route'   => route('admin.movies.index'),
+                    'add_route' => route('admin.movies.create'),
+                ],
+                [
+                    'title'   => 'Quản lý Rạp',
+                    'desc'    => 'Quản lý rạp chiếu, phòng chiếu và sơ đồ ghế ngồi.',
+                    'icon'    => 'fa-building',
+                    'color'   => 'sky',
+                    'count_label' => 'Rạp đang hoạt động',
+                    'count'   => \App\Models\Cinema::count(),
+                    'route'   => route('admin.cinemas.index'),
+                    'add_route' => route('admin.cinemas.create'),
+                ],
+                [
+                    'title'   => 'Suất Chiếu',
+                    'desc'    => 'Lập lịch và quản lý các suất chiếu theo ngày, phòng.',
+                    'icon'    => 'fa-calendar-days',
+                    'color'   => 'violet',
+                    'count_label' => 'Suất chiếu đã tạo',
+                    'count'   => \App\Models\Showtime::count(),
+                    'route'   => route('admin.showtimes.index'),
+                    'add_route' => route('admin.showtimes.create'),
+                ],
+                [
+                    'title'   => 'Quản lý Vé',
+                    'desc'    => 'Theo dõi đặt vé, trạng thái thanh toán và lịch sử.',
+                    'icon'    => 'fa-ticket',
+                    'color'   => 'amber',
+                    'count_label' => 'Vé đã đặt',
+                    'count'   => \App\Models\Ticket::count(),
+                    'route'   => route('admin.tickets.index'),
+                    'add_route' => null,
+                ],
+                [
+                    'title'   => 'Người Dùng',
+                    'desc'    => 'Xem và quản lý tài khoản, phân quyền người dùng.',
+                    'icon'    => 'fa-users',
+                    'color'   => 'emerald',
+                    'count_label' => 'Tài khoản đã đăng ký',
+                    'count'   => \App\Models\User::count(),
+                    'route'   => route('admin.users.index'),
+                    'add_route' => null,
+                ],
+                [
+                    'title'   => 'Bài Viết',
+                    'desc'    => 'Theo dõi bài viết tin tức, ưu đãi và thông báo.',
+                    'icon'    => 'fa-newspaper',
+                    'color'   => 'pink',
+                    'count_label' => 'Bài viết đã đăng',
+                    'count'   => \App\Models\Post::count(),
+                    'route'   => route('admin.posts.index'),
+                    'add_route' => null,
+                ],
+            ];
+
+            $colorMap = [
+                'red'    => ['bg' => 'bg-red-500/10',    'text' => 'text-red-400',    'border' => 'border-red-500/30',    'badge' => 'bg-red-600',    'hover' => 'hover:border-red-500/40'],
+                'sky'    => ['bg' => 'bg-sky-500/10',    'text' => 'text-sky-400',    'border' => 'border-sky-500/30',    'badge' => 'bg-sky-600',    'hover' => 'hover:border-sky-500/40'],
+                'violet' => ['bg' => 'bg-violet-500/10', 'text' => 'text-violet-400', 'border' => 'border-violet-500/30', 'badge' => 'bg-violet-600', 'hover' => 'hover:border-violet-500/40'],
+                'amber'  => ['bg' => 'bg-amber-500/10',  'text' => 'text-amber-400',  'border' => 'border-amber-500/30',  'badge' => 'bg-amber-600',  'hover' => 'hover:border-amber-500/40'],
+                'emerald'=> ['bg' => 'bg-emerald-500/10','text' => 'text-emerald-400','border' => 'border-emerald-500/30','badge' => 'bg-emerald-600','hover' => 'hover:border-emerald-500/40'],
+                'pink'   => ['bg' => 'bg-pink-500/10',   'text' => 'text-pink-400',   'border' => 'border-pink-500/30',   'badge' => 'bg-pink-600',   'hover' => 'hover:border-pink-500/40'],
+            ];
+        @endphp
+
+        <div class="space-y-8 animate-[fadeIn_0.5s_ease-in-out]">
+            {{-- Header --}}
+            <div class="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <div class="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-red-300 mb-3">
+                        <i class="fa-solid fa-layer-group"></i>
+                        Trung Tâm Quản Lý
+                    </div>
+                    <h2 class="text-3xl font-extrabold tracking-tight text-white md:text-4xl">Tổng Quan Quản Lý</h2>
+                    <p class="mt-2 text-gray-400">Chọn module bên dưới để quản lý từng phần của hệ thống CineBook.</p>
+                </div>
+                <div class="flex items-center gap-3 text-sm text-gray-500">
+                    <i class="fa-solid fa-circle-dot text-emerald-400 animate-pulse"></i>
+                    Hệ thống đang hoạt động bình thường
+                </div>
+            </div>
+
+            {{-- Module Cards --}}
+            <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                @foreach ($modules as $mod)
+                    @php $c = $colorMap[$mod['color']]; @endphp
+                    <div class="group flex flex-col rounded-[2rem] border border-gray-800 bg-gray-900/80 p-6 shadow-lg shadow-black/10 transition duration-200 hover:bg-gray-900 {{ $c['hover'] }}">
+                        {{-- Icon + Count --}}
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="flex h-14 w-14 items-center justify-center rounded-2xl {{ $c['bg'] }} {{ $c['text'] }} text-xl shadow-inner">
+                                <i class="fa-solid {{ $mod['icon'] }}"></i>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-3xl font-extrabold text-white">{{ number_format($mod['count']) }}</div>
+                                <div class="mt-0.5 text-xs text-gray-500">{{ $mod['count_label'] }}</div>
+                            </div>
+                        </div>
+
+                        {{-- Title + Desc --}}
+                        <div class="mt-5 flex-1">
+                            <h3 class="text-lg font-bold text-white">{{ $mod['title'] }}</h3>
+                            <p class="mt-1.5 text-sm leading-6 text-gray-400">{{ $mod['desc'] }}</p>
+                        </div>
+
+                        {{-- Actions --}}
+                        <div class="mt-6 flex items-center gap-3">
+                            <a href="{{ $mod['route'] }}"
+                               class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl {{ $c['badge'] }} px-4 py-2.5 text-sm font-bold text-white shadow transition hover:opacity-90">
+                                <i class="fa-solid fa-table-list"></i>
+                                Xem danh sách
+                            </a>
+                            @if ($mod['add_route'])
+                                <a href="{{ $mod['add_route'] }}"
+                                   class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-gray-700 bg-gray-950 px-3.5 py-2.5 text-sm font-semibold text-gray-300 transition hover:border-gray-500 hover:text-white"
+                                   title="Thêm mới">
+                                    <i class="fa-solid fa-plus"></i>
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            {{-- Quick Stats Bar --}}
+            <div class="rounded-[2rem] border border-gray-800 bg-gray-900/60 p-6">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-500/10 text-red-400">
+                        <i class="fa-solid fa-chart-bar"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-white">Tổng hợp nhanh</div>
+                        <div class="text-xs text-gray-500">Số liệu tổng quan toàn hệ thống</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
+                    @foreach ($modules as $mod)
+                        @php $c = $colorMap[$mod['color']]; @endphp
+                        <a href="{{ $mod['route'] }}" class="group/stat flex flex-col items-center gap-2 rounded-2xl border border-gray-800 bg-gray-950/70 p-4 text-center transition hover:border-gray-600">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-xl {{ $c['bg'] }} {{ $c['text'] }} text-sm">
+                                <i class="fa-solid {{ $mod['icon'] }}"></i>
+                            </div>
+                            <div class="text-xl font-extrabold text-white">{{ number_format($mod['count']) }}</div>
+                            <div class="text-xs text-gray-500 leading-tight">{{ $mod['count_label'] }}</div>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+
     @else
         <!-- Placeholder cho các Tab chưa làm -->
         <div class="flex min-h-[500px] items-center justify-center rounded-[2rem] border border-dashed border-gray-700 bg-gray-900/40 p-8 text-center animate-[fadeIn_0.5s_ease-in-out]">
