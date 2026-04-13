@@ -5,9 +5,14 @@
 
 @section('content')
 <div class="space-y-6 animate-[fadeIn_0.5s_ease-in-out]">
-    <div>
-        <h2 class="text-2xl font-extrabold tracking-tight text-white">Danh sách Bài Viết</h2>
-        <p class="mt-1 text-sm text-gray-400">Xem và quản lý các bài viết đã được đăng lên hệ thống.</p>
+    <div class="flex items-center gap-4">
+        <a href="{{ route('admin.management') }}" class="text-[rgb(255,255,255)] transition hover:text-gray-300">
+            <i class="fa-solid fa-chevron-left text-2xl"></i>
+        </a>
+        <div>
+            <h2 class="text-2xl font-extrabold tracking-tight text-white">Danh sách Bài Viết</h2>
+            <p class="mt-1 text-sm text-gray-400">Xem và quản lý các bài viết đã được đăng lên hệ thống.</p>
+        </div>
     </div>
 
     <div class="overflow-hidden rounded-3xl border border-gray-800 bg-gray-900/70 shadow-xl">

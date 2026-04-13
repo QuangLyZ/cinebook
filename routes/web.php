@@ -132,6 +132,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('cinemas', App\Http\Controllers\Admin\CinemaController::class);
     Route::resource('showtimes', App\Http\Controllers\Admin\ShowtimeController::class);
     Route::resource('tickets', App\Http\Controllers\Admin\TicketController::class);
+    Route::get('/tickets-export', [App\Http\Controllers\Admin\TicketController::class, 'exportCsv'])->name('tickets.export');
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);
     Route::resource('posts', App\Http\Controllers\Admin\PostController::class);
 });

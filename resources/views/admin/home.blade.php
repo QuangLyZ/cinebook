@@ -638,7 +638,12 @@
                         <i class="fa-solid fa-layer-group"></i>
                         Trung Tâm Quản Lý
                     </div>
-                    <h2 class="text-3xl font-extrabold tracking-tight text-white md:text-4xl">Tổng Quan Quản Lý</h2>
+                    <div class="flex items-center gap-4">
+                        <a href="{{ route('admin.dashboard') }}" class="text-[rgb(255,255,255)] transition hover:text-gray-300">
+                            <i class="fa-solid fa-chevron-left text-3xl md:text-4xl"></i>
+                        </a>
+                        <h2 class="text-3xl font-extrabold tracking-tight text-white md:text-4xl">Tổng Quan Quản Lý</h2>
+                    </div>
                     <p class="mt-2 text-gray-400">Chọn module bên dưới để quản lý từng phần của hệ thống CineBook.</p>
                 </div>
                 <div class="flex items-center gap-3 text-sm text-gray-500">
