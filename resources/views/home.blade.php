@@ -1,5 +1,4 @@
 @extends('layouts.app')
-
 @section('content')
 <!-- Hero Section -->
 <div class="relative bg-black text-white">
