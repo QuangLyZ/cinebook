@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use App\Http\Controllers\SendEmailController;
 use App\Http\Controllers\Admin\VoucherController;

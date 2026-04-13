@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use App\Models\Post;
 class PostController extends Controller
 {
     public function index()
@@ -25,5 +25,27 @@ class PostController extends Controller
             'activeTab' => 'posts',
             'pageTitle' => 'Quản lý Bài Viết'
         ]);
+    }
+        public function store(Request $request)
+    {
+        $request->validate([
+        'title' => 'required',
+        'content' => 'required',
+        'publish_at' => 'required'
+    ]);
+      $post = Post::create([
+        'title' => $request->title,
+        'keywords' => $request->keywords,
+        'content' => $request->content,
+        'publish_at' => $request->publish_at,
+        'status' => 'published'
+    ]);
+
+
+        $data['status'] = $request->publish_at ? 'scheduled' : 'published';
+        
+        Post::create($data);
+
+        return redirect()->back()->with('success', 'Đăng bài thành công!');
     }
 }

@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', $pageTitle)
 @section('page-title', $pageTitle)
@@ -280,7 +280,6 @@
     <!-- FORM -->
 <form action="{{ route('admin.posts.store') }}" method="POST">
 
-<<<<<<< Updated upstream
     @elseif ($activeTab === 'management')
         @php
             $modules = [
@@ -439,74 +438,6 @@
                 </div>
             </div>
         </div>
-
-=======
-    @csrf
-    <div>
-        <h1 class="ml-8 flex items-center justify-between block text-gray-300 mb-7 font-bold text-2xl">TẠO BÀI VIẾT MỚI</h1>
-    </div>
-    <div class="max-w-4xl mx-auto bg-gray-900/60 backdrop-blur-xl 
-                border border-gray-800 rounded-2xl p-6 space-y-6 shadow-xl">
-
-        <!-- Title -->
-        <div>
-            <strong class="block text-gray-400 mb-4">TIÊU ĐỀ</strong>
-            <input type="text" name="title" placeholder="Nhập tiêu đề..."
-                class="w-full p-3 rounded-xl bg-gray-950 text-white 
-                       border border-gray-700 focus:border-red-500 
-                       focus:ring-1 focus:ring-red-500 outline-none transition">
-        </div>
-
-        <!-- Keywords -->
-        <div>
-            <strong class="block text-gray-400 mb-4">KEYWORDS</strong>
-            <input type="text" name="keywords" placeholder="vd: phim hay, cinema..."
-                class="w-full p-3 rounded-xl bg-gray-950 text-white 
-                       border border-gray-700 focus:border-pink-500 
-                       focus:ring-1 focus:ring-pink-500 outline-none transition">
-        </div>
-
-        <!-- Publish time -->
-        <div>
-            <strong class="block text-gray-400 mb-4">THỜI GIAN ĐĂNG</strong>
-
-    <input type="text" id="publish_at" name="publish_at"
-        placeholder="Chọn ngày giờ đăng..."
-        value="{{ old('publish_at') }}"
-        style="
-            width:100%;
-            padding:12px;
-            border-radius:12px;
-            border:1px solid #374151;
-            background:#020617;
-            color:white;
-            margin-top:5px;
-        ">
-        </div>
-
-        <!-- Content -->
-        <div>
-            <strong class="block text-gray-400 mb-4">NỘI DUNG BÀI VIẾT</strong>
-           <textarea id="editor" class="ckeditor" name="content"></textarea>
-            <style> .ck-editor__editable { min-height: 200px; background: #111827 !important; color: #ffffff !important; } </style>
-        </div>
-
-        <!-- Button -->
-        <div class="flex items-center justify-between">
-            <button 
-                class="bg-red-600 px-6 py-3 rounded-xl text-white font-semibold
-                       bg-gradient-to-r from-pink-500 to-red-500 
-                       hover:opacity-90 transition shadow-lg">
-                Đăng bài
-            </button>
-
-            @if(session('success'))
-                <p class="text-green-400">
-                    {{ session('success') }}
-                </p>
-            @endif
-        </div>
-    </div>
 </form>
 
     <!-- LIST -->
@@ -525,7 +456,6 @@
 
 </div>
 </div>
->>>>>>> Stashed changes
     @else
     
         <!-- Placeholder cho các Tab chưa làm -->
@@ -548,37 +478,3 @@
         </div>
     @endif
 @endsection
-@section('scripts')
-<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
-
-<script>
-let editorInstance = null;
-
-document.addEventListener("DOMContentLoaded", function () {
-
-<<<<<<< Updated upstream
-=======
-    const el = document.querySelector('#editor');
-
-    if (!el) return;
-
-    // ❗ nếu đã có rồi thì không tạo lại
-    if (editorInstance) return;
-
-    ClassicEditor
-        .create(el, {
-            ckfinder: {
-                uploadUrl: "{{ route('upload.image') }}?_token={{ csrf_token() }}"
-            }
-        })
-        .then(editor => {
-            editorInstance = editor;
-            console.log("✅ CKEditor READY");
-        })
-        .catch(error => {
-            console.error(error);
-        });
-});
-</script>
-@endsection
->>>>>>> Stashed changes
