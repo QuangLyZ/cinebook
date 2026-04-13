@@ -434,6 +434,282 @@
             </div>
         </div>
 
+    @elseif ($activeTab === 'actions')
+        {{-- ===== VOUCHER MANAGEMENT ===== --}}
+        <div class="space-y-8 animate-[fadeIn_0.5s_ease-in-out]">
+
+            {{-- Header --}}
+            <div class="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <div class="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-red-300 mb-3">
+                        <i class="fa-solid fa-bolt"></i>
+                        Action Center
+                    </div>
+                    <h2 class="text-3xl font-extrabold tracking-tight text-white md:text-4xl">Quản lý Voucher</h2>
+                    <p class="mt-2 text-gray-400">Tạo, chỉnh sửa và theo dõi mã giảm giá cho hệ thống CineBook.</p>
+                </div>
+                <button onclick="document.getElementById('modal-create-voucher').classList.remove('hidden')"
+                        class="inline-flex items-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-red-950/30 transition hover:bg-red-700">
+                    <i class="fa-solid fa-plus"></i>
+                    Thêm Voucher mới
+                </button>
+            </div>
+
+            {{-- Flash Messages --}}
+            @if (session('success'))
+                <div class="flex items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 text-sm font-semibold text-emerald-300">
+                    <i class="fa-solid fa-circle-check text-lg"></i>
+                    {{ session('success') }}
+                </div>
+            @endif
+            @if ($errors->any())
+                <div class="flex items-start gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm font-semibold text-red-300">
+                    <i class="fa-solid fa-triangle-exclamation text-lg mt-0.5"></i>
+                    <ul class="space-y-1">@foreach ($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
+                </div>
+            @endif
+
+            {{-- Stats Cards --}}
+            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                @php
+                    $vStats = [
+                        ['label' => 'Tổng Voucher',    'value' => $voucherStats['total'],     'icon' => 'fa-tags',            'tone' => 'bg-sky-500/15 text-sky-300'],
+                        ['label' => 'Đang hoạt động',  'value' => $voucherStats['active'],    'icon' => 'fa-circle-check',    'tone' => 'bg-emerald-500/15 text-emerald-300'],
+                        ['label' => 'Đã hết hạn',      'value' => $voucherStats['expired'],   'icon' => 'fa-clock-rotate-left','tone' => 'bg-amber-500/15 text-amber-300'],
+                        ['label' => 'Có giới hạn dùng','value' => $voucherStats['usage_cap'], 'icon' => 'fa-shield-halved',   'tone' => 'bg-violet-500/15 text-violet-300'],
+                    ];
+                @endphp
+                @foreach ($vStats as $st)
+                    <div class="flex items-center gap-4 rounded-[2rem] border border-gray-800 bg-gray-900/80 p-5 shadow-lg shadow-black/10 transition hover:border-gray-700">
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl {{ $st['tone'] }}">
+                            <i class="fa-solid {{ $st['icon'] }}"></i>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-extrabold text-white">{{ number_format($st['value']) }}</div>
+                            <div class="text-xs text-gray-500">{{ $st['label'] }}</div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            {{-- Filter Bar --}}
+            <form method="GET" action="{{ route('admin.actions') }}"
+                  class="flex flex-col gap-3 sm:flex-row sm:items-center rounded-[2rem] border border-gray-800 bg-gray-900/60 px-5 py-4">
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
+                    <input type="text" name="q" value="{{ $voucherFilters['q'] }}" placeholder="Tìm mã hoặc mô tả..."
+                           class="w-full rounded-xl border border-gray-700 bg-black/40 py-2.5 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
+                </div>
+                <select name="status"
+                        class="rounded-xl border border-gray-700 bg-black/40 px-4 py-2.5 text-sm text-white focus:border-red-500 focus:outline-none appearance-none">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="active"   {{ $voucherFilters['status'] === 'active'   ? 'selected' : '' }}>Đang hoạt động</option>
+                    <option value="inactive" {{ $voucherFilters['status'] === 'inactive' ? 'selected' : '' }}>Tắt</option>
+                </select>
+                <button type="submit"
+                        class="inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-red-700">
+                    <i class="fa-solid fa-filter"></i> Lọc
+                </button>
+                @if ($voucherFilters['q'] || $voucherFilters['status'])
+                    <a href="{{ route('admin.actions') }}"
+                       class="inline-flex items-center gap-2 rounded-xl border border-gray-700 bg-transparent px-4 py-2.5 text-sm font-semibold text-gray-300 transition hover:bg-gray-800">
+                        <i class="fa-solid fa-xmark"></i> Xoá lọc
+                    </a>
+                @endif
+            </form>
+
+            {{-- Table --}}
+            <div class="overflow-hidden rounded-[2rem] border border-gray-800 bg-gray-900/80 shadow-lg shadow-black/10">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-800 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                                <th class="px-6 py-4 text-left">Mã Voucher</th>
+                                <th class="px-6 py-4 text-left">Loại giảm</th>
+                                <th class="px-6 py-4 text-left">Giá trị</th>
+                                <th class="px-6 py-4 text-left">Thời gian</th>
+                                <th class="px-6 py-4 text-left">Đã dùng</th>
+                                <th class="px-6 py-4 text-left">Trạng thái</th>
+                                <th class="px-6 py-4 text-right">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-800/60">
+                            @forelse ($vouchers as $v)
+                                @php
+                                    $isExpired = $v->expires_at && $v->expires_at->isPast();
+                                    $isCapHit  = $v->usage_limit && $v->used_count >= $v->usage_limit;
+                                    $realActive = $v->is_active && !$isExpired && !$isCapHit;
+                                @endphp
+                                <tr class="group transition hover:bg-gray-800/40">
+                                    <td class="px-6 py-4">
+                                        <span class="inline-block rounded-lg bg-gray-800 px-3 py-1 font-mono text-sm font-bold text-white tracking-widest">
+                                            {{ $v->code }}
+                                        </span>
+                                        @if ($v->description)
+                                            <div class="mt-1 truncate max-w-[180px] text-xs text-gray-500">{{ $v->description }}</div>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-300">
+                                        @if ($v->discount_rate)
+                                            <span class="inline-flex items-center gap-1 rounded-full bg-violet-500/10 px-2.5 py-0.5 text-xs font-semibold text-violet-300">
+                                                <i class="fa-solid fa-percent text-[10px]"></i> Phần trăm
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 rounded-full bg-sky-500/10 px-2.5 py-0.5 text-xs font-semibold text-sky-300">
+                                                <i class="fa-solid fa-dong-sign text-[10px]"></i> Số tiền
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 font-bold text-white">
+                                        @if ($v->discount_rate)
+                                            {{ $v->discount_rate }}%
+                                        @else
+                                            {{ number_format($v->discount_value) }}đ
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 text-xs text-gray-400">
+                                        @if ($v->starts_at || $v->expires_at)
+                                            <div>{{ $v->starts_at?->format('d/m/Y') ?? '—' }}</div>
+                                            <div class="{{ $isExpired ? 'text-red-400' : '' }}">→ {{ $v->expires_at?->format('d/m/Y') ?? '∞' }}</div>
+                                        @else
+                                            <span class="text-gray-600">Không giới hạn</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-300">
+                                        <span class="{{ $isCapHit ? 'text-red-400 font-bold' : '' }}">
+                                            {{ number_format($v->used_count) }}
+                                            @if ($v->usage_limit) / {{ number_format($v->usage_limit) }} @endif
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        @if ($realActive)
+                                            <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-bold text-emerald-300">
+                                                <i class="fa-solid fa-circle text-[6px]"></i> Active
+                                            </span>
+                                        @elseif ($isExpired)
+                                            <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1 text-xs font-bold text-amber-300">
+                                                <i class="fa-solid fa-circle text-[6px]"></i> Hết hạn
+                                            </span>
+                                        @elseif ($isCapHit)
+                                            <span class="inline-flex items-center gap-1.5 rounded-full bg-red-500/15 px-3 py-1 text-xs font-bold text-red-300">
+                                                <i class="fa-solid fa-circle text-[6px]"></i> Hết lượt
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-700/60 px-3 py-1 text-xs font-bold text-gray-400">
+                                                <i class="fa-solid fa-circle text-[6px]"></i> Tắt
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <a href="{{ route('admin.actions') }}?edit={{ $v->id }}&q={{ $voucherFilters['q'] }}&status={{ $voucherFilters['status'] }}"
+                                               class="inline-flex items-center gap-1.5 rounded-xl border border-gray-700 bg-gray-800 px-3 py-1.5 text-xs font-semibold text-gray-200 transition hover:border-sky-500/40 hover:text-sky-300">
+                                                <i class="fa-solid fa-pen-to-square"></i> Sửa
+                                            </a>
+                                            <form method="POST" action="{{ route('admin.vouchers.destroy', $v) }}"
+                                                  onsubmit="return confirm('Xóa voucher {{ $v->code }}?')">
+                                                @csrf @method('DELETE')
+                                                <button type="submit"
+                                                        class="inline-flex items-center gap-1.5 rounded-xl border border-gray-700 bg-gray-800 px-3 py-1.5 text-xs font-semibold text-gray-400 transition hover:border-red-500/40 hover:text-red-400">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="px-6 py-16 text-center">
+                                        <div class="flex flex-col items-center gap-3 text-gray-500">
+                                            <i class="fa-solid fa-tags text-3xl text-gray-700"></i>
+                                            <p class="font-semibold">Chưa có voucher nào{{ $voucherFilters['q'] ? ' khớp kết quả tìm kiếm' : '' }}.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                {{-- Pagination --}}
+                @if ($vouchers->hasPages())
+                    <div class="border-t border-gray-800 px-6 py-4">
+                        {{ $vouchers->withQueryString()->links() }}
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- ===== MODAL: TẠO VOUCHER MỚI ===== --}}
+        <div id="modal-create-voucher"
+             class="{{ $errors->any() && !old('_edit_mode') ? '' : 'hidden' }} fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+            <div class="w-full max-w-xl rounded-[2rem] border border-gray-800 bg-gray-900 shadow-2xl shadow-black/60">
+                <div class="flex items-center justify-between border-b border-gray-800 px-6 py-5">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-500/10 text-red-400">
+                            <i class="fa-solid fa-plus"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">Thêm Voucher mới</h3>
+                    </div>
+                    <button onclick="document.getElementById('modal-create-voucher').classList.add('hidden')"
+                            class="text-gray-500 hover:text-white transition">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+                <form method="POST" action="{{ route('admin.vouchers.store') }}" class="px-6 py-6 space-y-4">
+                    @csrf
+                    <input type="hidden" name="_edit_mode" value="0">
+                    @include('admin.partials.voucher-form', ['v' => null])
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button type="button"
+                                onclick="document.getElementById('modal-create-voucher').classList.add('hidden')"
+                                class="rounded-xl border border-gray-700 px-5 py-2.5 text-sm font-semibold text-gray-300 transition hover:bg-gray-800">
+                            Hủy
+                        </button>
+                        <button type="submit"
+                                class="inline-flex items-center gap-2 rounded-xl bg-red-600 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-red-700">
+                            <i class="fa-solid fa-floppy-disk"></i> Lưu Voucher
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{-- ===== MODAL: EDIT VOUCHER ===== --}}
+        @if ($editingVoucher)
+        <div id="modal-edit-voucher"
+             class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+            <div class="w-full max-w-xl rounded-[2rem] border border-gray-800 bg-gray-900 shadow-2xl shadow-black/60">
+                <div class="flex items-center justify-between border-b border-gray-800 px-6 py-5">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-400">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">Sửa Voucher: <span class="font-mono text-sky-300">{{ $editingVoucher->code }}</span></h3>
+                    </div>
+                    <a href="{{ route('admin.actions') }}" class="text-gray-500 hover:text-white transition">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </a>
+                </div>
+                <form method="POST" action="{{ route('admin.vouchers.update', $editingVoucher) }}" class="px-6 py-6 space-y-4">
+                    @csrf @method('PUT')
+                    <input type="hidden" name="_edit_mode" value="1">
+                    @include('admin.partials.voucher-form', ['v' => $editingVoucher])
+                    <div class="flex justify-end gap-3 pt-2">
+                        <a href="{{ route('admin.actions') }}"
+                           class="rounded-xl border border-gray-700 px-5 py-2.5 text-sm font-semibold text-gray-300 transition hover:bg-gray-800">
+                            Hủy
+                        </a>
+                        <button type="submit"
+                                class="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-sky-700">
+                            <i class="fa-solid fa-floppy-disk"></i> Cập nhật
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        @endif
+
     @else
         <!-- Placeholder cho các Tab chưa làm -->
         <div class="flex min-h-[500px] items-center justify-center rounded-[2rem] border border-dashed border-gray-700 bg-gray-900/40 p-8 text-center animate-[fadeIn_0.5s_ease-in-out]">
