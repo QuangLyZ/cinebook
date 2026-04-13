@@ -4,124 +4,118 @@
 @section('page-title', $pageTitle)
 
 @section('content')
-    @if ($activeTab === 'settings')
-        <div class="max-w-4xl space-y-8 animate-[fadeIn_0.5s_ease-in-out]">
-            <div class="mb-8">
-                <h2 class="text-3xl font-extrabold tracking-tight text-white md:text-4xl">Cài đặt Hệ thống</h2>
-                <p class="mt-3 text-gray-400">Thiết lập các ngưỡng cảnh báo vận hành và thông báo qua email cho quản trị viên.</p>
-            </div>
-
-            <!-- Block 1: Ngưỡng cảnh báo -->
-            <div class="rounded-[2rem] border border-gray-800 bg-gray-900/80 p-8 shadow-lg shadow-black/10 transition hover:border-gray-700">
-                <div class="mb-6 flex items-center gap-3">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-400">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-bold text-white">Ngưỡng cảnh báo hoạt động</h3>
-                        <p class="text-sm text-gray-400">Hệ thống sẽ báo động khi các chỉ số vượt mức an toàn.</p>
-                    </div>
-                </div>
-
-                <div class="grid gap-6 md:grid-cols-2">
-                    <!-- Tỉ lệ payment error -->
-                    <div>
-                        <label class="mb-2 block text-sm font-semibold text-gray-300">Tỉ lệ Payment Error/Tháng (%)</label>
-                        <div class="relative">
-                            <input type="number" name="payment_error_threshold" value="{{ $settings['payment_error_threshold'] ?? '15' }}" class="w-full rounded-xl border border-gray-700 bg-black/50 px-4 py-3 text-white placeholder-gray-500 transition focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
-                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">%</span>
-                        </div>
-                        <p class="mt-2 text-xs text-gray-500">Cảnh báo nếu tỷ lệ lỗi thanh toán vượt ngưỡng.</p>
-                    </div>
-
-                    <!-- Tỷ lệ fill rạp -->
-                    <div>
-                        <label class="mb-2 block text-sm font-semibold text-gray-300">Ngưỡng Tỷ lệ Fill rạp/Tháng (%)</label>
-                        <div class="relative">
-                            <input type="number" name="min_fill_rate" value="{{ $settings['min_fill_rate'] ?? '20' }}" class="w-full rounded-xl border border-gray-700 bg-black/50 px-4 py-3 text-white placeholder-gray-500 transition focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
-                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">%</span>
-                        </div>
-                        <p class="mt-2 text-xs text-gray-500">Cảnh báo nếu tỷ lệ lấp đầy ghế dưới mức này.</p>
-                    </div>
-
-                    <!-- Doanh thu tối thiểu -->
-                    <div>
-                        <label class="mb-2 block text-sm font-semibold text-gray-300">Cảnh báo Doanh thu (VND/Tháng)</label>
-                        <input type="number" name="min_monthly_revenue" value="{{ $settings['min_monthly_revenue'] ?? '150000000' }}" class="w-full rounded-xl border border-gray-700 bg-black/50 px-4 py-3 text-white placeholder-gray-500 transition focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
-                        <p class="mt-2 text-xs text-gray-500">Báo động khi doanh thu tháng sụt giảm.</p>
-                    </div>
-
-                    <!-- Cảnh báo số suất chiếu -->
-                    <div>
-                        <label class="mb-2 block text-sm font-semibold text-gray-300">Cảnh báo Suất chiếu trống/Tháng</label>
-                        <input type="number" name="min_empty_showtimes" value="{{ $settings['min_empty_showtimes'] ?? '5' }}" class="w-full rounded-xl border border-gray-700 bg-black/50 px-4 py-3 text-white placeholder-gray-500 transition focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
-                        <p class="mt-2 text-xs text-gray-500">Số lượng ghế bán ra dưới mức quy định.</p>
-                    </div>
-
-                    <!-- Phim sắp hết hạn -->
-                    <div class="md:col-span-2">
-                        <label class="mb-2 block text-sm font-semibold text-gray-300">Cảnh báo Phim (Ngày/Tháng)</label>
-                        <div class="relative">
-                            <input type="number" name="movie_expiry_notice" value="{{ $settings['movie_expiry_notice'] ?? '7' }}" class="w-full rounded-xl border border-gray-700 bg-black/50 px-4 py-3 text-white placeholder-gray-500 transition focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
-                            <div class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">Ngày</div>
-                        </div>
-                        <p class="mt-2 text-xs text-gray-500">Báo trước số ngày khi một phim chuẩn bị ngừng chiếu.</p>
-                    </div>
+    @if ($activeTab === 'feedback')
+        <div class="space-y-8 animate-[fadeIn_0.5s_ease-in-out]">
+            <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <h2 class="text-3xl font-extrabold tracking-tight text-white md:text-4xl">Ý kiến phản hồi từ khách hàng</h2>
+                    <p class="mt-3 text-gray-400">Xem và phản hồi trực tiếp qua email các góp ý từ người dùng.</p>
                 </div>
             </div>
 
-            <!-- Block 2: Email Notifications -->
-            <div class="rounded-[2rem] border border-gray-800 bg-gray-900/80 p-8 shadow-lg shadow-black/10 transition hover:border-gray-700">
-                <div class="mb-6 flex items-center gap-3">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-400">
-                        <i class="fa-solid fa-envelope-open-text"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-bold text-white">Cấu hình Thông báo Email</h3>
-                        <p class="text-sm text-gray-400">Quản lý cách hệ thống báo cáo tình trạng vận hành cho bạn.</p>
-                    </div>
+            @if(session('success'))
+                <div class="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-emerald-400 flex items-center gap-3">
+                    <i class="fa-solid fa-circle-check"></i>
+                    {{ session('success') }}
                 </div>
+            @endif
+            @if(session('error'))
+                <div class="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-red-400 flex items-center gap-3">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ session('error') }}
+                </div>
+            @endif
 
-                <div class="space-y-6">
-                    <!-- Toggle Switch -->
-                    <label class="flex cursor-pointer items-center gap-4 w-max">
-                        <div class="relative">
-                            <input type="checkbox" name="email_notification_active" value="true" class="peer sr-only" {{ ($settings['email_notification_active'] ?? 'false') == 'true' ? 'checked' : '' }}>
-                            <div class="h-7 w-12 rounded-full bg-gray-700 transition peer-checked:bg-red-600"></div>
-                            <div class="absolute left-1 top-1 h-5 w-5 rounded-full bg-white transition peer-checked:translate-x-5 shadow-sm"></div>
+            @if($feedbacks->isEmpty())
+                <div class="flex min-h-[400px] flex-col items-center justify-center rounded-[2rem] border border-dashed border-gray-800 bg-gray-900/40 p-12 text-center">
+                    <div class="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-gray-800 text-gray-500 shadow-inner">
+                        <i class="fa-solid fa-inbox text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white">Hộp thư trống</h3>
+                    <p class="mt-2 text-gray-400">Chưa có phản hồi nào từ khách hàng.</p>
+                </div>
+            @else
+                <div class="grid gap-6">
+                    @foreach($feedbacks as $item)
+                        <div class="group relative overflow-hidden rounded-[2rem] border border-gray-800 bg-gray-900/60 p-6 shadow-lg backdrop-blur-sm transition duration-300 hover:border-red-500/30 hover:bg-gray-900/80">
+                            <div class="flex flex-col gap-6 md:flex-row md:items-start">
+                                <!-- User Info Avatar -->
+                                <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 text-xl font-bold text-white shadow-inner ring-1 ring-gray-700/50 group-hover:from-red-900/50 group-hover:to-red-800/30 group-hover:text-red-400 transition-all">
+                                    {{ mb_strtoupper(mb_substr($item->user->name ?? 'U', 0, 1, 'UTF-8'), 'UTF-8') }}
+                                </div>
+
+                                <div class="flex-1 space-y-5 w-full">
+                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                        <div>
+                                            <h4 class="text-xl font-extrabold text-white group-hover:text-red-400 transition">{{ $item->title }}</h4>
+                                            <div class="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-gray-400">
+                                                <span class="font-bold text-gray-200 uppercase tracking-wider text-xs">{{ $item->user->name ?? 'Người dùng ẩn danh' }}</span>
+                                                <span class="h-1 w-1 rounded-full bg-gray-600"></span>
+                                                <span>{{ $item->user->email ?? 'Không có email' }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-left sm:text-right">
+                                            <div class="text-xs font-semibold uppercase tracking-wider text-gray-500">{{ $item->created_at->format('H:i d/m/Y') }}</div>
+                                            <div class="mt-1 text-xs text-red-500/80">{{ $item->created_at->diffForHumans() }}</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="rounded-2xl bg-black/30 p-5 text-gray-300 leading-relaxed border border-gray-800/40 font-mono text-sm shadow-inner">
+                                        {{ $item->context }}
+                                    </div>
+
+                                    <div class="flex flex-wrap items-center gap-3 pt-2">
+                                        <button onclick="toggleReplyForm({{ $item->id }})" class="inline-flex items-center gap-2 rounded-xl bg-gray-800 px-5 py-2.5 text-xs font-bold text-gray-200 shadow-sm transition hover:bg-gray-700 hover:text-white ring-1 ring-gray-700">
+                                            <i class="fa-solid fa-reply"></i>
+                                            Trả lời qua Email
+                                        </button>
+                                        
+                                        <form action="{{ route('admin.feedback.destroy', $item->id) }}" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa phản hồi này?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-transparent px-5 py-2.5 text-xs font-bold text-gray-400 transition hover:bg-red-500/10 hover:text-red-400 ring-1 ring-gray-800 hover:ring-red-500/30">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                                Xoá
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <!-- Reply Form (Hidden by default) -->
+                                    <div id="reply-form-{{ $item->id }}" class="hidden mt-4 pt-6 border-t border-gray-800/60">
+                                        <form action="{{ route('admin.feedback.reply', $item->id) }}" method="POST" class="space-y-4">
+                                            @csrf
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-300 mb-2">Nội dung trả lời tới <span class="text-white">{{ $item->user->email ?? 'Khách' }}</span>:</label>
+                                                <textarea name="reply_message" rows="4" required class="w-full rounded-xl border border-gray-700 bg-black/50 px-4 py-3 text-sm text-white placeholder-gray-600 transition focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20" placeholder="Viết phản hồi của bạn ở đây..."></textarea>
+                                            </div>
+                                            <div class="flex justify-end gap-3">
+                                                <button type="button" onclick="toggleReplyForm({{ $item->id }})" class="rounded-xl border border-gray-700 px-4 py-2 text-xs font-bold text-gray-400 hover:bg-gray-800 hover:text-white transition">Hủy</button>
+                                                <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2 text-xs font-bold text-white shadow-lg shadow-red-900/20 hover:bg-red-700 transition">
+                                                    <i class="fa-solid fa-paper-plane"></i> Gửi Email
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <span class="text-sm font-bold text-white">Bật tự động gửi Email cảnh báo</span>
-                    </label>
-
-                    <div>
-                        <label class="mb-2 block text-sm font-semibold text-gray-300">Email nhận cảnh báo</label>
-                        <input type="email" name="admin_email" value="{{ $settings['admin_email'] ?? 'admin@cinebook.com' }}" class="w-full rounded-xl border border-gray-700 bg-black/50 px-4 py-3 text-white placeholder-gray-500 transition focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
-                        <p class="mt-2 text-xs text-gray-500">Phân tách nhiều email bằng dấu phẩy (,)</p>
-                    </div>
-
-                    <div>
-                        <label class="mb-2 block text-sm font-semibold text-gray-300">Tần suất thông báo</label>
-                        <select name="notification_frequency" class="w-full rounded-xl border border-gray-700 bg-black/50 px-4 py-3 text-white transition focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20 appearance-none">
-                            <option value="realtime" {{ ($settings['notification_frequency'] ?? '') == 'realtime' ? 'selected' : '' }}>Tức thì (Ngay khi có lỗi hoặc vượt ngưỡng)</option>
-                            <option value="daily" {{ ($settings['notification_frequency'] ?? '') == 'daily' ? 'selected' : '' }}>Tổng hợp báo cáo cuối ngày</option>
-                            <option value="weekly" {{ ($settings['notification_frequency'] ?? '') == 'weekly' ? 'selected' : '' }}>Tổng hợp báo cáo hàng tuần</option>
-                            <option value="monthly" {{ ($settings['notification_frequency'] ?? '') == 'monthly' ? 'selected' : '' }}>Tổng hợp báo cáo hàng tháng</option>
-                        </select>
-                    </div>
+                    @endforeach
                 </div>
-            </div>
-
-            <!-- Submit Buttons -->
-            <div class="flex items-center justify-end gap-4 border-t border-gray-800/60 pt-6">
-                <button type="button" class="rounded-xl border border-gray-700 bg-transparent px-6 py-3 text-sm font-bold text-gray-300 transition hover:bg-gray-800 hover:text-white">
-                    Hủy thay đổi
-                </button>
-                <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-red-600 px-8 py-3 text-sm font-bold text-white shadow-lg shadow-red-950/30 transition hover:bg-red-700">
-                    <i class="fa-solid fa-floppy-disk"></i>
-                    Lưu cấu hình
-                </button>
-            </div>
-        </form>
+            @endif
+        </div>
+        
+        <script>
+            function toggleReplyForm(id) {
+                const form = document.getElementById('reply-form-' + id);
+                if (form.classList.contains('hidden')) {
+                    form.classList.remove('hidden');
+                    form.classList.add('animate-[fadeIn_0.3s_ease-in-out]');
+                } else {
+                    form.classList.add('hidden');
+                    form.classList.remove('animate-[fadeIn_0.3s_ease-in-out]');
+                }
+            }
+        </script>
 
     @elseif ($activeTab === 'dashboard')
         @php
@@ -136,7 +130,7 @@
                 ['label' => 'Thêm phim mới', 'desc' => 'Tạo nội dung phim và nối lịch chiếu sau.', 'icon' => 'fa-film'],
                 ['label' => 'Tạo bài viết', 'desc' => 'Soạn tin tức, ưu đãi hoặc thông báo chiến dịch.', 'icon' => 'fa-pen-nib'],
                 ['label' => 'Quản lý rạp', 'desc' => 'Cập nhật rạp, phòng chiếu, ghế và sơ đồ.', 'icon' => 'fa-building'],
-                ['label' => 'Cấu hình hệ thống', 'desc' => 'Điều chỉnh thông số vận hành và tài khoản.', 'icon' => 'fa-gear'],
+                ['label' => 'Ý kiến phản hồi', 'desc' => 'Xem và phản hồi các góp ý từ khách hàng.', 'icon' => 'fa-comments'],
             ];
 
             $activity = [
@@ -167,9 +161,9 @@
                                     <i class="fa-solid fa-arrow-right"></i>
                                     Đi tới khu quản lý
                                 </a>
-                                <a href="{{ route('admin.settings') }}" class="inline-flex items-center gap-2 rounded-2xl border border-gray-700 bg-gray-900 px-5 py-3 text-sm font-semibold text-gray-200 transition hover:border-red-500/40 hover:text-white">
-                                    <i class="fa-solid fa-sliders"></i>
-                                    Xem cài đặt
+                                <a href="{{ route('admin.feedback') }}" class="inline-flex items-center gap-2 rounded-2xl border border-gray-700 bg-gray-900 px-5 py-3 text-sm font-semibold text-gray-200 transition hover:border-red-500/40 hover:text-white">
+                                    <i class="fa-solid fa-comments"></i>
+                                    Xem phản hồi
                                 </a>
                             </div>
                         </div>

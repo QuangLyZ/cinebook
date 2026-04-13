@@ -36,7 +36,7 @@
                     $isActive = $date->toDateString() === $selectedDate;
                 @endphp
                 <a
-                    href="{{ route('cinemas.show', ['cinema' => $cinema->id, 'date' => $date->toDateString()]) }}"
+                    href="{{ route('cinemas.show', ['id' => $cinema->id, 'date' => $date->toDateString()]) }}"
                     class="flex-shrink-0 min-w-24 rounded-2xl border px-4 py-3 text-center transition {{ $isActive ? 'border-red-500 bg-red-600 text-white shadow-lg shadow-red-500/20' : 'border-gray-800 bg-gray-900 text-gray-300 hover:border-gray-600 hover:text-white' }}"
                 >
                     <div class="text-xs uppercase tracking-[0.22em] {{ $isActive ? 'text-red-100' : 'text-gray-500' }}">

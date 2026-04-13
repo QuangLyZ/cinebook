@@ -35,7 +35,7 @@ class DatabaseSeeder extends Seeder
                 'release_date' => now()->subDays(5),
                 'director' => 'Joe Russo, Anthony Russo',
                 'description' => 'Siêu anh hùng phải hợp lực để đối đầu với mối đe doạ xuyên vũ trụ.',
-                'poster' => 'https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?q=80&w=600',
+                'poster' => '/images/pic1.jpg',
                 'actors' => 'Robert Downey Jr., Chris Evans, Mark Ruffalo',
                 'age_limit' => 18,
                 'trailer_link' => 'https://www.youtube.com/watch?v=example1',
@@ -50,7 +50,7 @@ class DatabaseSeeder extends Seeder
                 'release_date' => now()->subMonths(7),
                 'director' => 'Christopher Nolan',
                 'description' => 'Batman đối đầu với Joker trong một trận chiến tâm lý đầy kịch tính.',
-                'poster' => 'https://images.unsplash.com/photo-1517604931442-7f4f0f0fdcf3?q=80&w=600',
+                'poster' => '/images/batmanpic.jpg',
                 'actors' => 'Christian Bale, Heath Ledger, Aaron Eckhart',
                 'age_limit' => 16,
                 'trailer_link' => 'https://www.youtube.com/watch?v=example2',
@@ -65,7 +65,7 @@ class DatabaseSeeder extends Seeder
                 'release_date' => now()->subMonths(2),
                 'director' => 'Jon Watts',
                 'description' => 'Peter Parker phải đối mặt với hậu quả khi danh tính bị bại lộ.',
-                'poster' => 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=600',
+                'poster' => '/images/pic3nowayhome.jpg',
                 'actors' => 'Tom Holland, Zendaya, Benedict Cumberbatch',
                 'age_limit' => 13,
                 'trailer_link' => 'https://www.youtube.com/watch?v=example3',
@@ -80,11 +80,26 @@ class DatabaseSeeder extends Seeder
                 'release_date' => now()->subWeeks(1),
                 'director' => 'Denis Villeneuve',
                 'description' => 'Hành trình của Paul Atreides tiếp tục trong sa mạc hành tinh Arrakis.',
-                'poster' => 'https://images.unsplash.com/photo-1518081461908-c3bd6158a59f?q=80&w=600',
+                'poster' => '/images/pic2dune.jpg',
                 'actors' => 'Timothée Chalamet, Zendaya, Rebecca Ferguson',
                 'age_limit' => 18,
                 'trailer_link' => 'https://www.youtube.com/watch?v=example4',
             ]
         );
+
+        // Seed Cinemas
+        $cinemas = [
+            ['name' => 'CineBook Landmark 81', 'address' => 'Tầng B1, Vincom Center Landmark 81, 772 Điện Biên Phủ, P.22, Q.Bình Thạnh, TP.HCM'],
+            ['name' => 'CineBook Aeon Tân Phú', 'address' => 'Tầng 3, Aeon Mall Tân Phú Celadon, 30 Bờ Bao Tân Thắng, P.Sơn Kỳ, Q.Tân Phú, TP.HCM'],
+            ['name' => 'CineBook Sư Vạn Hạnh', 'address' => 'Tầng 6, Vạn Hạnh Mall, 11 Sư Vạn Hạnh, P.12, Q.10, TP.HCM'],
+            ['name' => 'CineBook Giga Mall', 'address' => 'Tầng 6, Gigamall, 240-242 Phạm Văn Đồng, P.Hiệp Bình Chánh, Thủ Đức, TP.HCM'],
+        ];
+
+        foreach ($cinemas as $cinemaData) {
+            \App\Models\Cinema::updateOrCreate(
+                ['name' => $cinemaData['name']],
+                ['address' => $cinemaData['address']]
+            );
+        }
     }
 }

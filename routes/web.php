@@ -9,7 +9,9 @@ use App\Http\Controllers\OtpController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CinemaController;
 use App\Models\Setting;
+use App\Models\Feedback;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/sendEmail', [SendEmailController::class, 'send'])->name('sendEmail');
 
@@ -52,7 +54,17 @@ Route::get('/feedback', function () {
 })->name('feedback');
 
 Route::post('/feedback', function (\Illuminate\Http\Request $request) {
-    return back()->with('success', 'Cảm ơn sếp đã gửi phản hồi nha!');
+    if (!Auth::check()) {
+        return back()->with('error', 'Vui lòng đăng nhập để gửi phản hồi!');
+    }
+
+    \App\Models\Feedback::create([
+        'user_id' => Auth::id(),
+        'title' => $request->topic,
+        'context' => $request->message,
+    ]);
+
+    return back()->with('success', 'Cảm ơn sếp đã gửi phản hồi nha! Chúng tôi sẽ xem xét sớm nhất.');
 });
 
 Route::middleware('auth')->group(function () {
@@ -69,7 +81,7 @@ $adminTabs = [
     'management' => 'Quản lý',
     'posts' => 'Bài viết',
     'actions' => 'Action',
-    'settings' => 'Cài đặt',
+    'feedback' => 'Ý kiến phản hồi',
 ];
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () use ($adminTabs) {
@@ -102,30 +114,33 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::put('/actions/vouchers/{voucher}', [VoucherController::class, 'update'])->name('vouchers.update');
     Route::delete('/actions/vouchers/{voucher}', [VoucherController::class, 'destroy'])->name('vouchers.destroy');
 
-    Route::get('/settings', function () use ($adminTabs) {
-        $settings = Setting::all()->pluck('value', 'key');
+    Route::get('/feedback', function () use ($adminTabs) {
+        $feedbacks = \App\Models\Feedback::with('user')->latest()->get();
         return view('admin.home', [
-            'activeTab' => 'settings',
-            'pageTitle' => $adminTabs['settings'],
+            'activeTab' => 'feedback',
+            'pageTitle' => $adminTabs['feedback'],
             'adminTabs' => $adminTabs,
-            'settings' => $settings,
+            'feedbacks' => $feedbacks,
         ]);
-    })->name('settings');
+    })->name('feedback');
 
-    Route::post('/settings', function (\Illuminate\Http\Request $request) {
-        $data = $request->except('_token');
-        
-        // Chế độ checkbox
-        if (!isset($data['email_notification_active'])) {
-            $data['email_notification_active'] = 'false';
+    Route::post('/feedback/{feedback}/reply', function (\Illuminate\Http\Request $request, \App\Models\Feedback $feedback) {
+        $request->validate(['reply_message' => 'required|string']);
+
+        if ($feedback->user && $feedback->user->email) {
+            \Illuminate\Support\Facades\Mail::to($feedback->user->email)->send(
+                new \App\Mail\FeedbackReplyMail($feedback->title, $request->reply_message)
+            );
+            return back()->with('success', 'Đã gửi email phản hồi thành công đến ' . $feedback->user->email);
         }
 
-        foreach ($data as $key => $value) {
-            Setting::updateOrCreate(['key' => $key], ['value' => $value]);
-        }
+        return back()->with('error', 'Người dùng này không có địa chỉ email hợp lệ.');
+    })->name('feedback.reply');
 
-        return back()->with('success', 'Cấu hình hệ thống đã được cập nhật thành công!');
-    })->name('settings.update');
+    Route::delete('/feedback/{feedback}', function (\App\Models\Feedback $feedback) {
+        $feedback->delete();
+        return back()->with('success', 'Đã xóa phản hồi thành công.');
+    })->name('feedback.destroy');
 
     // Admin Management Resources
     Route::resource('movies', App\Http\Controllers\Admin\MovieController::class);

@@ -50,26 +50,40 @@
 
         <!-- Feedback Form -->
         <div>
-            <form action="#" method="POST" class="space-y-5">
+            @if(session('success'))
+                <div class="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl flex items-center gap-3">
+                    <i class="fa-solid fa-circle-check"></i>
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl flex items-center gap-3">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            <form action="{{ route('feedback') }}" method="POST" class="space-y-5">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
                         <label for="name" class="block text-sm font-medium text-gray-300 mb-1">Họ Tên</label>
-                        <input type="text" id="name" name="name" required class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500">
+                        <input type="text" id="name" name="name" value="{{ Auth::user()->name ?? '' }}" required class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500">
                     </div>
                     <div>
                         <label for="email" class="block text-sm font-medium text-gray-300 mb-1">Email</label>
-                        <input type="email" id="email" name="email" required class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500">
+                        <input type="email" id="email" name="email" value="{{ Auth::user()->email ?? '' }}" required class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500">
                     </div>
                 </div>
                 
                 <div>
                     <label for="topic" class="block text-sm font-medium text-gray-300 mb-1">Chủ đề</label>
                     <select id="topic" name="topic" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 appearance-none">
-                        <option value="support">Hỗ trợ đặt vé / Thanh toán</option>
-                        <option value="feedback">Góp ý dịch vụ rạp</option>
-                        <option value="bug">Báo lỗi website/ứng dụng</option>
-                        <option value="other">Khác</option>
+                        <option value="Hỗ trợ đặt vé / Thanh toán">Hỗ trợ đặt vé / Thanh toán</option>
+                        <option value="Góp ý dịch vụ rạp">Góp ý dịch vụ rạp</option>
+                        <option value="Báo lỗi website/ứng dụng">Báo lỗi website/ứng dụng</option>
+                        <option value="Khác">Khác</option>
                     </select>
                 </div>
 
