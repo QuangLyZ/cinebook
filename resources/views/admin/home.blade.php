@@ -275,6 +275,286 @@
             </div>
         </section>
 
+     @elseif ($activeTab === 'actions')
+        @php
+            $vouchers = $vouchers ?? collect();
+            $editingVoucher = $editingVoucher ?? null;
+            $voucherStats = $voucherStats ?? ['total' => 0, 'active' => 0, 'expired' => 0, 'usage_cap' => 0];
+            $voucherFilters = $voucherFilters ?? ['q' => '', 'status' => ''];
+            $discountType = old('discount_type');
+
+            if ($discountType === null && $editingVoucher) {
+                $discountType = $editingVoucher->discount_rate ? 'rate' : 'value';
+            }
+
+            $discountType = $discountType ?: 'value';
+        @endphp
+
+        <section class="space-y-6 animate-[fadeIn_0.5s_ease-in-out]">
+            @if (session('success'))
+                <div class="rounded-[1.75rem] border border-emerald-500/20 bg-emerald-500/10 px-5 py-4 text-sm font-semibold text-emerald-200">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if ($errors->any())
+                <div class="rounded-[1.75rem] border border-red-500/20 bg-red-500/10 px-5 py-4">
+                    <div class="text-sm font-semibold text-red-200">Có dữ liệu voucher chưa hợp lệ.</div>
+                    <ul class="mt-3 space-y-2 text-sm text-red-100/90">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <div class="rounded-[1.75rem] border border-gray-800 bg-gray-900/80 p-5 shadow-lg shadow-black/10">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <div class="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">Total</div>
+                            <div class="mt-3 text-3xl font-extrabold text-white">{{ $voucherStats['total'] }}</div>
+                        </div>
+                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/15 text-red-300">
+                            <i class="fa-solid fa-ticket"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-[1.75rem] border border-gray-800 bg-gray-900/80 p-5 shadow-lg shadow-black/10">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <div class="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">Active</div>
+                            <div class="mt-3 text-3xl font-extrabold text-white">{{ $voucherStats['active'] }}</div>
+                        </div>
+                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-300">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-[1.75rem] border border-gray-800 bg-gray-900/80 p-5 shadow-lg shadow-black/10">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <div class="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">Expired</div>
+                            <div class="mt-3 text-3xl font-extrabold text-white">{{ $voucherStats['expired'] }}</div>
+                        </div>
+                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-300">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-[1.75rem] border border-gray-800 bg-gray-900/80 p-5 shadow-lg shadow-black/10">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <div class="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">Usage Limit</div>
+                            <div class="mt-3 text-3xl font-extrabold text-white">{{ $voucherStats['usage_cap'] }}</div>
+                        </div>
+                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-300">
+                            <i class="fa-solid fa-gauge-high"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_420px]">
+                <div class="rounded-[2rem] border border-gray-800 bg-gray-900/80 shadow-lg shadow-black/10">
+                    <div class="flex flex-col gap-4 border-b border-gray-800 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                            <div class="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">Voucher Registry</div>
+                            <h2 class="mt-2 text-2xl font-extrabold tracking-tight text-white">Quản lý voucher tại tab Action</h2>
+                            <p class="mt-2 text-sm leading-6 text-gray-400">Giữ cùng tinh thần bảng quản trị: tìm nhanh, xem trạng thái và thao tác trực tiếp trên từng dòng.</p>
+                        </div>
+
+                        <form method="GET" action="{{ route('admin.actions') }}" class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_170px_auto]">
+                            <label class="flex items-center gap-3 rounded-2xl border border-gray-800 bg-gray-950/80 px-4 py-3">
+                                <i class="fa-solid fa-magnifying-glass text-gray-500"></i>
+                                <input type="text" name="q" value="{{ $voucherFilters['q'] }}" placeholder="Tìm theo code hoặc mô tả" class="w-full border-0 bg-transparent p-0 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-0">
+                            </label>
+                            <select name="status" class="rounded-2xl border border-gray-800 bg-gray-950/80 px-4 py-3 text-sm text-white focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="active" {{ $voucherFilters['status'] === 'active' ? 'selected' : '' }}>Đang bật</option>
+                                <option value="inactive" {{ $voucherFilters['status'] === 'inactive' ? 'selected' : '' }}>Đã tắt</option>
+                            </select>
+                            <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-red-950/30 transition hover:bg-red-700">
+                                <i class="fa-solid fa-filter"></i>
+                                Lọc
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-800 text-sm">
+                            <thead class="bg-black/20 text-left text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                                <tr>
+                                    <th class="px-6 py-4">Code</th>
+                                    <th class="px-6 py-4">Giảm giá</th>
+                                    <th class="px-6 py-4">Thời gian</th>
+                                    <th class="px-6 py-4">Giới hạn</th>
+                                    <th class="px-6 py-4">Trạng thái</th>
+                                    <th class="px-6 py-4 text-right">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-800">
+                                @forelse ($vouchers as $voucher)
+                                    @php
+                                        $isExpired = $voucher->expires_at && $voucher->expires_at->isPast();
+                                    @endphp
+                                    <tr class="bg-transparent transition hover:bg-gray-950/50">
+                                        <td class="px-6 py-5 align-top">
+                                            <div class="font-bold text-white">{{ $voucher->code }}</div>
+                                            <div class="mt-1 max-w-xs text-xs leading-5 text-gray-500">{{ $voucher->description ?: 'Chưa có mô tả cho voucher này.' }}</div>
+                                        </td>
+                                        <td class="px-6 py-5 align-top text-gray-300">
+                                            @if (!is_null($voucher->discount_rate))
+                                                <div class="font-semibold text-white">{{ $voucher->discount_rate }}%</div>
+                                                <div class="mt-1 text-xs text-gray-500">Giảm theo phần trăm</div>
+                                            @else
+                                                <div class="font-semibold text-white">{{ number_format((float) $voucher->discount_value, 0, ',', '.') }}đ</div>
+                                                <div class="mt-1 text-xs text-gray-500">Giảm tiền trực tiếp</div>
+                                            @endif
+                                        </td>
+                                        <td class="px-6 py-5 align-top text-gray-300">
+                                            <div>{{ optional($voucher->starts_at)->format('d/m/Y H:i') ?: 'Ngay khi tạo' }}</div>
+                                            <div class="mt-1 text-xs text-gray-500">{{ optional($voucher->expires_at)->format('d/m/Y H:i') ?: 'Không giới hạn' }}</div>
+                                        </td>
+                                        <td class="px-6 py-5 align-top text-gray-300">
+                                            <div>{{ is_null($voucher->usage_limit) ? 'Không giới hạn' : $voucher->used_count . ' / ' . $voucher->usage_limit }}</div>
+                                            <div class="mt-1 text-xs text-gray-500">Đã dùng: {{ $voucher->used_count }}</div>
+                                        </td>
+                                        <td class="px-6 py-5 align-top">
+                                            @if (!$voucher->is_active)
+                                                <span class="inline-flex rounded-full border border-gray-700 bg-gray-800 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-gray-300">Tắt</span>
+                                            @elseif ($isExpired)
+                                                <span class="inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-amber-300">Hết hạn</span>
+                                            @else
+                                                <span class="inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">Đang bật</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-6 py-5 align-top">
+                                            <div class="flex justify-end gap-2">
+                                                <a href="{{ route('admin.actions', array_filter(['edit' => $voucher->id, 'q' => $voucherFilters['q'], 'status' => $voucherFilters['status']])) }}" class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-gray-700 bg-gray-950 text-gray-300 transition hover:border-red-500/40 hover:text-white">
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </a>
+                                                <form method="POST" action="{{ route('admin.vouchers.destroy', $voucher) }}" onsubmit="return confirm('Xóa voucher {{ $voucher->code }}?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-gray-700 bg-gray-950 text-gray-300 transition hover:border-red-500/40 hover:text-white">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="px-6 py-12 text-center">
+                                            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-gray-800 text-gray-500">
+                                                <i class="fa-solid fa-ticket text-2xl"></i>
+                                            </div>
+                                            <div class="mt-4 text-lg font-bold text-white">Chưa có voucher nào</div>
+                                            <div class="mt-2 text-sm text-gray-500">Tạo voucher đầu tiên ở khối bên phải để bắt đầu quản lý ưu đãi.</div>
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if (method_exists($vouchers, 'hasPages') && $vouchers->hasPages())
+                        <div class="border-t border-gray-800 px-6 py-4">
+                            {{ $vouchers->links() }}
+                        </div>
+                    @endif
+                </div>
+
+                <div class="rounded-[2rem] border border-gray-800 bg-gray-900/80 p-6 shadow-lg shadow-black/10">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <div class="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">{{ $editingVoucher ? 'Edit Voucher' : 'New Voucher' }}</div>
+                            <h3 class="mt-2 text-2xl font-extrabold tracking-tight text-white">{{ $editingVoucher ? 'Cập nhật voucher' : 'Tạo voucher mới' }}</h3>
+                            <p class="mt-2 text-sm leading-6 text-gray-400">Form nằm cùng tab để admin không phải chuyển màn hình khi cần sửa nhanh.</p>
+                        </div>
+                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 text-red-300">
+                            <i class="fa-solid {{ $editingVoucher ? 'fa-wand-magic-sparkles' : 'fa-plus' }}"></i>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ $editingVoucher ? route('admin.vouchers.update', $editingVoucher) : route('admin.vouchers.store') }}" class="mt-6 space-y-5">
+                        @csrf
+                        @if ($editingVoucher)
+                            @method('PUT')
+                        @endif
+
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-gray-300">Mã voucher</label>
+                            <input type="text" name="code" value="{{ old('code', $editingVoucher->code ?? '') }}" placeholder="Ví dụ: SUMMER25" class="w-full rounded-2xl border border-gray-700 bg-black/50 px-4 py-3 text-white placeholder-gray-500 transition focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
+                        </div>
+
+                        <div class="grid gap-5 md:grid-cols-2">
+                            <div>
+                                <label class="mb-2 block text-sm font-semibold text-gray-300">Loại giảm giá</label>
+                                <select name="discount_type" class="w-full rounded-2xl border border-gray-700 bg-black/50 px-4 py-3 text-white transition focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
+                                    <option value="value" {{ $discountType === 'value' ? 'selected' : '' }}>Giảm theo số tiền</option>
+                                    <option value="rate" {{ $discountType === 'rate' ? 'selected' : '' }}>Giảm theo phần trăm</option>
+                                </select>
+                            </div>
+                            <label class="flex items-center gap-3 rounded-2xl border border-gray-800 bg-black/30 px-4 py-3">
+                                <input type="checkbox" name="is_active" value="1" class="h-5 w-5 rounded border-gray-600 bg-gray-900 text-red-600 focus:ring-red-500" {{ old('is_active', $editingVoucher?->is_active ?? true) ? 'checked' : '' }}>
+                                <span class="text-sm font-semibold text-white">Kích hoạt voucher ngay</span>
+                            </label>
+                        </div>
+
+                        <div class="grid gap-5 md:grid-cols-2">
+                            <div>
+                                <label class="mb-2 block text-sm font-semibold text-gray-300">Giảm theo tiền (VND)</label>
+                                <input type="number" step="0.01" min="0" name="discount_value" value="{{ old('discount_value', $editingVoucher->discount_value ?? '') }}" class="w-full rounded-2xl border border-gray-700 bg-black/50 px-4 py-3 text-white placeholder-gray-500 transition focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
+                            </div>
+                            <div>
+                                <label class="mb-2 block text-sm font-semibold text-gray-300">Giảm theo %</label>
+                                <input type="number" min="1" max="100" name="discount_rate" value="{{ old('discount_rate', $editingVoucher->discount_rate ?? '') }}" class="w-full rounded-2xl border border-gray-700 bg-black/50 px-4 py-3 text-white placeholder-gray-500 transition focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-gray-300">Mô tả</label>
+                            <textarea name="description" rows="4" class="w-full rounded-2xl border border-gray-700 bg-black/50 px-4 py-3 text-white placeholder-gray-500 transition focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">{{ old('description', $editingVoucher->description ?? '') }}</textarea>
+                        </div>
+
+                        <div class="grid gap-5 md:grid-cols-2">
+                            <div>
+                                <label class="mb-2 block text-sm font-semibold text-gray-300">Bắt đầu áp dụng</label>
+                                <input type="datetime-local" name="starts_at" value="{{ old('starts_at', optional($editingVoucher?->starts_at)->format('Y-m-d\\TH:i')) }}" class="w-full rounded-2xl border border-gray-700 bg-black/50 px-4 py-3 text-white transition focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
+                            </div>
+                            <div>
+                                <label class="mb-2 block text-sm font-semibold text-gray-300">Hết hạn</label>
+                                <input type="datetime-local" name="expires_at" value="{{ old('expires_at', optional($editingVoucher?->expires_at)->format('Y-m-d\\TH:i')) }}" class="w-full rounded-2xl border border-gray-700 bg-black/50 px-4 py-3 text-white transition focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-gray-300">Giới hạn số lượt dùng</label>
+                            <input type="number" min="0" name="usage_limit" value="{{ old('usage_limit', $editingVoucher->usage_limit ?? '') }}" placeholder="Để trống nếu không giới hạn" class="w-full rounded-2xl border border-gray-700 bg-black/50 px-4 py-3 text-white placeholder-gray-500 transition focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-end gap-3 border-t border-gray-800 pt-5">
+                            @if ($editingVoucher)
+                                <a href="{{ route('admin.actions') }}" class="inline-flex items-center gap-2 rounded-2xl border border-gray-700 bg-transparent px-5 py-3 text-sm font-semibold text-gray-300 transition hover:bg-gray-800 hover:text-white">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                    Hủy sửa
+                                </a>
+                            @endif
+                            <button type="submit" class="inline-flex items-center gap-2 rounded-2xl bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-red-950/30 transition hover:bg-red-700">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                                {{ $editingVoucher ? 'Lưu cập nhật' : 'Tạo voucher' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
     @elseif ($activeTab === 'management')
         @php
             $modules = [
