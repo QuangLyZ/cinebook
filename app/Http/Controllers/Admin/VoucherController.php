@@ -16,7 +16,7 @@ class VoucherController extends Controller
         'management' => 'Quản lý',
         'posts' => 'Bài viết',
         'actions' => 'Action',
-        'settings' => 'Cài đặt',
+        'feedback' => 'Ý kiến phản hồi',
     ];
 
     public function index(Request $request): View

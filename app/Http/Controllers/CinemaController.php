@@ -16,8 +16,7 @@ class CinemaController extends Controller
         $cinemas = collect();
 
         try {
-            $cinemas = DB::table('Cinemas')
-                ->select('id', 'name', 'address')
+            $cinemas = \App\Models\Cinema::select('id', 'name', 'address')
                 ->orderBy('name')
                 ->get();
         } catch (QueryException) {
@@ -37,15 +36,15 @@ class CinemaController extends Controller
         $selectedDate = Carbon::today()->toDateString();
 
         try {
-            $cinema = DB::table('Cinemas')
+            $cinema = DB::table('cinemas')
                 ->select('id', 'name', 'address')
                 ->where('id', $cinemaId)
                 ->first();
 
             abort_if(! $cinema, 404);
 
-            $availableDates = DB::table('Showtimes as showtimes')
-                ->join('Rooms as rooms', 'rooms.id', '=', 'showtimes.room_id')
+            $availableDates = DB::table('showtimes as showtimes')
+                ->join('rooms as rooms', 'rooms.id', '=', 'showtimes.room_id')
                 ->where('rooms.cinema_id', $cinemaId)
                 ->where('showtimes.start_time', '>=', Carbon::today()->startOfDay())
                 ->selectRaw('DATE(showtimes.start_time) as show_date')
@@ -64,10 +63,10 @@ class CinemaController extends Controller
             $requestedDate = $request->query('date');
             $selectedDate = $this->resolveSelectedDate($requestedDate, $availableDates);
 
-            $showtimes = DB::table('Showtimes as showtimes')
-                ->join('Rooms as rooms', 'rooms.id', '=', 'showtimes.room_id')
-                ->join('Movies as movies', 'movies.id', '=', 'showtimes.movie_id')
-                ->leftJoin('Subtitles as subtitles', 'subtitles.id', '=', 'showtimes.subtitle_id')
+            $showtimes = DB::table('showtimes as showtimes')
+                ->join('rooms as rooms', 'rooms.id', '=', 'showtimes.room_id')
+                ->join('movies as movies', 'movies.id', '=', 'showtimes.movie_id')
+                ->leftJoin('subtitles as subtitles', 'subtitles.id', '=', 'showtimes.subtitle_id')
                 ->where('rooms.cinema_id', $cinemaId)
                 ->whereDate('showtimes.start_time', $selectedDate)
                 ->orderBy('showtimes.start_time')
