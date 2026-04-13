@@ -8,9 +8,11 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Str;
 use App\Mail\SendOtpMail;
+use Illuminate\Database\QueryException;
 
 class AuthController extends Controller
 {
@@ -38,7 +40,7 @@ class AuthController extends Controller
             
             if (!$user) {
                 // Nếu chưa có, tạo tài khoản mới toanh cho khách
-                $user = User::create([
+                $user = $this->createGoogleUser([
                     'fullname' => $googleUser->getName(),
                     'email' => $googleUser->getEmail(),
                     // Tạo một mật khẩu ảo siêu dài ngẫu nhiên vì khách đăng nhập bằng Google
@@ -165,5 +167,39 @@ class AuthController extends Controller
         \Illuminate\Support\Facades\Session::put('verify_email', trim($request->email));
         return redirect()->route('otp.form')
             ->with('success', 'Mã xác thực OTP đã được gửi. Vui lòng kiểm tra email của bạn để tiếp tục!');
+    }
+
+    protected function createGoogleUser(array $attributes): User
+    {
+        try {
+            return User::create($attributes);
+        } catch (QueryException $exception) {
+            if (! $this->isUsersPrimaryKeySequenceError($exception)) {
+                throw $exception;
+            }
+
+            $this->syncUsersPrimaryKeySequence();
+
+            return User::create($attributes);
+        }
+    }
+
+    protected function isUsersPrimaryKeySequenceError(QueryException $exception): bool
+    {
+        $message = $exception->getMessage();
+
+        return str_contains($message, 'duplicate key value violates unique constraint "Users_pkey"')
+            || str_contains($message, 'duplicate key value violates unique constraint "users_pkey"');
+    }
+
+    protected function syncUsersPrimaryKeySequence(): void
+    {
+        DB::statement(<<<'SQL'
+            SELECT setval(
+                pg_get_serial_sequence('"Users"', 'id'),
+                COALESCE((SELECT MAX(id) FROM "Users"), 0) + 1,
+                false
+            )
+        SQL);
     }
 }

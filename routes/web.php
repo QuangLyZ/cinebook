@@ -1,10 +1,17 @@
 <?php
 
 use App\Http\Controllers\SendEmailController;
+use App\Http\Controllers\Admin\VoucherController;
+use App\Http\Controllers\AccountController;
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\OtpController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CinemaController;
+use App\Models\Setting;
+use App\Models\Feedback;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/sendEmail', [SendEmailController::class, 'send'])->name('sendEmail');
 
@@ -33,15 +40,15 @@ Route::get('/forgot-password', function () {
 // Movies
 Route::get('/movies', [MovieController::class, 'list'])->name('movies.index');
 
-// Cinemas (Thêm route này để sửa lỗi Route [cinemas.index] not defined)
-
+// Cinemas
 Route::get('/cinemas', function () {
     return view('theaters');
 })->name('cinemas.index');
 Route::get('/cinemas/{id}', [CinemaController::class, 'show'])->name('cinemas.show');
 
 // Booking
-Route::get('/booking/{id}', [MovieController::class, 'show'])->name('booking.show');
+Route::get('/booking/{id}', [BookingController::class, 'show'])->name('booking.show');
+Route::post('/booking/{id}/checkout', [BookingController::class, 'checkout'])->name('booking.checkout');
 
 // Feedback
 Route::get('/feedback', function () {
@@ -49,7 +56,21 @@ Route::get('/feedback', function () {
 })->name('feedback');
 
 Route::post('/feedback', function (\Illuminate\Http\Request $request) {
-    return back()->with('success', 'Cảm ơn sếp đã gửi phản hồi nha!');
+    if (!Auth::check()) {
+        return back()->with('error', 'Vui lòng đăng nhập để gửi phản hồi!');
+    }
+
+    \App\Models\Feedback::create([
+        'user_id' => Auth::id(),
+        'title' => $request->topic,
+        'context' => $request->message,
+    ]);
+
+    return back()->with('success', 'Cảm ơn sếp đã gửi phản hồi nha! Chúng tôi sẽ xem xét sớm nhất.');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/account', [AccountController::class, 'index'])->name('account.index');
 });
 
 // OTP Routes
@@ -62,7 +83,7 @@ $adminTabs = [
     'management' => 'Quản lý',
     'posts' => 'Bài viết',
     'actions' => 'Action',
-    'settings' => 'Cài đặt',
+    'feedback' => 'Ý kiến phản hồi',
 ];
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () use ($adminTabs) {
@@ -90,19 +111,44 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         ]);
     })->name('posts');
 
-    Route::get('/actions', function () use ($adminTabs) {
-        return view('admin.home', [
-            'activeTab' => 'actions',
-            'pageTitle' => $adminTabs['actions'],
-            'adminTabs' => $adminTabs,
-        ]);
-    })->name('actions');
+    Route::get('/actions', [VoucherController::class, 'index'])->name('actions');
+    Route::post('/actions/vouchers', [VoucherController::class, 'store'])->name('vouchers.store');
+    Route::put('/actions/vouchers/{voucher}', [VoucherController::class, 'update'])->name('vouchers.update');
+    Route::delete('/actions/vouchers/{voucher}', [VoucherController::class, 'destroy'])->name('vouchers.destroy');
 
-    Route::get('/settings', function () use ($adminTabs) {
+    Route::get('/feedback', function () use ($adminTabs) {
+        $feedbacks = \App\Models\Feedback::with('user')->latest()->get();
         return view('admin.home', [
-            'activeTab' => 'settings',
-            'pageTitle' => $adminTabs['settings'],
+            'activeTab' => 'feedback',
+            'pageTitle' => $adminTabs['feedback'],
             'adminTabs' => $adminTabs,
+            'feedbacks' => $feedbacks,
         ]);
-    })->name('settings');
+    })->name('feedback');
+
+    Route::post('/feedback/{feedback}/reply', function (\Illuminate\Http\Request $request, \App\Models\Feedback $feedback) {
+        $request->validate(['reply_message' => 'required|string']);
+
+        if ($feedback->user && $feedback->user->email) {
+            \Illuminate\Support\Facades\Mail::to($feedback->user->email)->send(
+                new \App\Mail\FeedbackReplyMail($feedback->title, $request->reply_message)
+            );
+            return back()->with('success', 'Đã gửi email phản hồi thành công đến ' . $feedback->user->email);
+        }
+
+        return back()->with('error', 'Người dùng này không có địa chỉ email hợp lệ.');
+    })->name('feedback.reply');
+
+    Route::delete('/feedback/{feedback}', function (\App\Models\Feedback $feedback) {
+        $feedback->delete();
+        return back()->with('success', 'Đã xóa phản hồi thành công.');
+    })->name('feedback.destroy');
+
+    // Admin Management Resources
+    Route::resource('movies', App\Http\Controllers\Admin\MovieController::class);
+    Route::resource('cinemas', App\Http\Controllers\Admin\CinemaController::class);
+    Route::resource('showtimes', App\Http\Controllers\Admin\ShowtimeController::class);
+    Route::resource('tickets', App\Http\Controllers\Admin\TicketController::class);
+    Route::resource('users', App\Http\Controllers\Admin\UserController::class);
+    Route::resource('posts', App\Http\Controllers\Admin\PostController::class);
 });

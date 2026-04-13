@@ -35,9 +35,9 @@
                         $adminNav = [
                             'dashboard' => ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'icon' => 'fa-chart-line'],
                             'management' => ['label' => 'Quản lý', 'route' => 'admin.management', 'icon' => 'fa-layer-group'],
-                            'posts' => ['label' => 'Bài viết', 'route' => 'admin.posts', 'icon' => 'fa-newspaper'],
+                            'posts' => ['label' => 'Bài viết', 'route' => 'admin.posts.index', 'icon' => 'fa-newspaper'],
                             'actions' => ['label' => 'Action', 'route' => 'admin.actions', 'icon' => 'fa-bolt'],
-                            'settings' => ['label' => 'Cài đặt', 'route' => 'admin.settings', 'icon' => 'fa-sliders'],
+                            'feedback' => ['label' => 'Ý kiến phản hồi', 'route' => 'admin.feedback', 'icon' => 'fa-comments'],
                         ];
                     @endphp
 
@@ -95,8 +95,8 @@
                             <i class="fa-regular fa-bell"></i>
                         </button>
                         <div class="flex items-center gap-3 rounded-2xl border border-gray-800 bg-gray-900/80 px-3 py-2 text-white">
-                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-600 font-bold text-white">
-                                {{ strtoupper(substr(Auth::user()->name ?? 'A', 0, 1)) }}
+                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-600 font-bold text-white shadow-inner">
+                                {{ mb_strtoupper(mb_substr(Auth::user()->name ?? 'A', 0, 1, 'UTF-8'), 'UTF-8') }}
                             </div>
                             <div class="hidden sm:block">
                                 <div class="text-sm font-semibold">{{ Auth::user()->name ?? 'Admin User' }}</div>
