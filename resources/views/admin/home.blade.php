@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', $pageTitle)
 @section('page-title', $pageTitle)
@@ -268,6 +268,11 @@
                 </div>
             </div>
         </section>
+@elseif ($activeTab === 'posts')
+ <div class="max-w-5xl mx-auto rounded-[2rem] border border-dashed border-gray-700 bg-gray-900/40 p-8 text-center animate-[fadeIn_0.5s_ease-in-out]">
+<div class="max-w-5xl mx-auto space-y-8">
+    <!-- FORM -->
+<form action="{{ route('admin.posts.store') }}" method="POST">
 
      @elseif ($activeTab === 'actions')
         @php
@@ -707,8 +712,26 @@
                 </div>
             </div>
         </div>
+</form>
 
+    <!-- LIST -->
+    <div class="space-y-4">
+        @foreach($posts ?? [] as $post)
+            <div class="p-4 bg-gray-800 rounded">
+                <h3 class="text-xl text-white">{{ $post->title }}</h3>
+                <p class="text-gray-400 text-sm">{{ $post->keywords }}</p>
+                <p class="text-gray-500 text-xs">
+                    {{ $post->publish_at ?? 'Đăng ngay' }}
+                </p>
+            </div>
+
+        @endforeach
+    </div>
+
+</div>
+</div>
     @else
+    
         <!-- Placeholder cho các Tab chưa làm -->
         <div class="flex min-h-[500px] items-center justify-center rounded-[2rem] border border-dashed border-gray-700 bg-gray-900/40 p-8 text-center animate-[fadeIn_0.5s_ease-in-out]">
             <div>
@@ -729,6 +752,3 @@
         </div>
     @endif
 @endsection
-
-
-

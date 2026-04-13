@@ -6,5 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Post extends Model
 {
-    //
+    protected $fillable = [
+    'keywords',
+    'title',
+    'content',
+    'publish_at',
+    'status',
+];
 }
