@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -93,125 +94,225 @@ class BookingController extends Controller
     public function checkout(Request $request, int $showtimeId): JsonResponse
     {
         if (! $request->user()) {
+            $this->recordPaymentLog([
+                'user_id' => null,
+                'ticket_id' => null,
+                'showtime_id' => $showtimeId,
+                'payment_method' => (string) $request->input('payment_method', 'unknown'),
+                'status' => 'failed',
+                'attempted_at' => now(),
+                'amount' => 0,
+                'discount_amount' => 0,
+                'final_amount' => 0,
+                'seat_count' => count((array) $request->input('seat_names', [])),
+                'voucher_code' => $request->input('voucher_code'),
+                'customer_email' => $request->input('email'),
+                'customer_phone' => $request->input('phone'),
+                'error_message' => 'Người dùng chưa đăng nhập.',
+                'metadata' => [
+                    'seat_names' => (array) $request->input('seat_names', []),
+                ],
+            ]);
+
             return response()->json([
                 'message' => 'Bạn cần đăng nhập để hoàn tất thanh toán và lưu lịch sử vé.',
                 'login_url' => route('login'),
             ], 401);
         }
 
-        $data = $request->validate([
-            'fullname' => ['required', 'string', 'min:3', 'max:255'],
-            'email' => ['required', 'email', 'max:255'],
-            'phone' => ['required', 'string', 'max:20'],
-            'payment_method' => ['required', 'in:vnpay,paypal'],
-            'seat_names' => ['required', 'array', 'min:1'],
-            'seat_names.*' => ['required', 'string'],
-            'voucher_code' => ['nullable', 'string', 'max:50'],
-        ], [
-            'seat_names.required' => 'Vui lòng chọn ít nhất một ghế.',
-        ]);
-
-        $result = DB::transaction(function () use ($request, $showtimeId, $data) {
-            $showtime = DB::table('showtimes')->where('id', $showtimeId)->first();
-            if (! $showtime) {
-                throw ValidationException::withMessages([
-                    'showtime' => 'Suất chiếu không còn tồn tại.',
-                ]);
-            }
-
-            $seatNames = collect($data['seat_names'])
-                ->map(fn ($seat) => strtoupper(trim($seat)))
-                ->unique()
-                ->values();
-
-            $seats = DB::table('seats')
-                ->where('room_id', $showtime->room_id)
-                ->whereIn('seat_name', $seatNames)
-                ->select(['id', 'seat_name'])
-                ->get();
-
-            if ($seats->count() !== $seatNames->count()) {
-                throw ValidationException::withMessages([
-                    'seat_names' => 'Một hoặc nhiều ghế không hợp lệ cho phòng chiếu này.',
-                ]);
-            }
-
-            $alreadyBooked = DB::table('ticket_details')
-                ->join('tickets', 'tickets.id', '=', 'ticket_details.ticket_id')
-                ->where('tickets.showtime_id', $showtimeId)
-                ->whereIn('ticket_details.seat_id', $seats->pluck('id'))
-                ->exists();
-
-            if ($alreadyBooked) {
-                throw ValidationException::withMessages([
-                    'seat_names' => 'Một hoặc nhiều ghế vừa được người khác đặt. Vui lòng chọn lại.',
-                ]);
-            }
-
-            $baseTotal = $seatNames->count() * self::SEAT_PRICE;
-            $voucher = $this->resolveVoucher($data['voucher_code'] ?? null);
-            $discountAmount = $voucher ? $this->calculateDiscount($voucher, $baseTotal) : 0;
-            $finalPrice = max($baseTotal - $discountAmount, 0);
-
-            $ticketId = DB::table('tickets')->insertGetId([
-                'user_id' => $request->user()->id,
-                'showtime_id' => $showtimeId,
-                'fullname' => $data['fullname'],
-                'email' => $data['email'],
-                'phone' => $data['phone'],
-                'booking_date' => now(),
-                'total_price' => $baseTotal,
-                'voucher_id' => $voucher?->id,
-                'discount_amount' => $discountAmount,
-                'final_price' => $finalPrice,
-                'created_at' => now(),
-                'updated_at' => now(),
+        try {
+            $data = $request->validate([
+                'fullname' => ['required', 'string', 'min:3', 'max:255'],
+                'email' => ['required', 'email', 'max:255'],
+                'phone' => ['required', 'string', 'max:20'],
+                'payment_method' => ['required', 'in:vnpay,paypal'],
+                'seat_names' => ['required', 'array', 'min:1'],
+                'seat_names.*' => ['required', 'string'],
+                'voucher_code' => ['nullable', 'string', 'max:50'],
+            ], [
+                'seat_names.required' => 'Vui lòng chọn ít nhất một ghế.',
             ]);
 
-            $seatRows = $seats->map(fn ($seat) => [
-                'ticket_id' => $ticketId,
-                'seat_id' => $seat->id,
-                'price_at_booking' => self::SEAT_PRICE,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ])->all();
+            $result = DB::transaction(function () use ($request, $showtimeId, $data) {
+                $showtime = DB::table('showtimes')->where('id', $showtimeId)->first();
+                if (! $showtime) {
+                    throw ValidationException::withMessages([
+                        'showtime' => 'Suất chiếu không còn tồn tại.',
+                    ]);
+                }
 
-            DB::table('ticket_details')->insert($seatRows);
+                $seatNames = collect($data['seat_names'])
+                    ->map(fn ($seat) => strtoupper(trim($seat)))
+                    ->unique()
+                    ->values();
 
-            if ($voucher) {
-                DB::table('voucher_usages')->insert([
-                    'voucher_id' => $voucher->id,
+                $seats = DB::table('seats')
+                    ->where('room_id', $showtime->room_id)
+                    ->whereIn('seat_name', $seatNames)
+                    ->select(['id', 'seat_name'])
+                    ->get();
+
+                if ($seats->count() !== $seatNames->count()) {
+                    throw ValidationException::withMessages([
+                        'seat_names' => 'Một hoặc nhiều ghế không hợp lệ cho phòng chiếu này.',
+                    ]);
+                }
+
+                $alreadyBooked = DB::table('ticket_details')
+                    ->join('tickets', 'tickets.id', '=', 'ticket_details.ticket_id')
+                    ->where('tickets.showtime_id', $showtimeId)
+                    ->whereIn('ticket_details.seat_id', $seats->pluck('id'))
+                    ->exists();
+
+                if ($alreadyBooked) {
+                    throw ValidationException::withMessages([
+                        'seat_names' => 'Một hoặc nhiều ghế vừa được người khác đặt. Vui lòng chọn lại.',
+                    ]);
+                }
+
+                $baseTotal = $seatNames->count() * self::SEAT_PRICE;
+                $voucher = $this->resolveVoucher($data['voucher_code'] ?? null);
+                $discountAmount = $voucher ? $this->calculateDiscount($voucher, $baseTotal) : 0;
+                $finalPrice = max($baseTotal - $discountAmount, 0);
+
+                $ticketId = DB::table('tickets')->insertGetId([
                     'user_id' => $request->user()->id,
-                    'ticket_id' => $ticketId,
-                    'voucher_code' => $voucher->code,
+                    'showtime_id' => $showtimeId,
+                    'fullname' => $data['fullname'],
+                    'email' => $data['email'],
+                    'phone' => $data['phone'],
+                    'booking_date' => now(),
+                    'total_price' => $baseTotal,
+                    'voucher_id' => $voucher?->id,
                     'discount_amount' => $discountAmount,
-                    'used_at' => now(),
+                    'final_price' => $finalPrice,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
 
-                DB::table('vouchers')
-                    ->where('id', $voucher->id)
-                    ->update([
-                        'used_count' => DB::raw('used_count + 1'),
+                $seatRows = $seats->map(fn ($seat) => [
+                    'ticket_id' => $ticketId,
+                    'seat_id' => $seat->id,
+                    'price_at_booking' => self::SEAT_PRICE,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ])->all();
+
+                DB::table('ticket_details')->insert($seatRows);
+
+                if ($voucher) {
+                    DB::table('voucher_usages')->insert([
+                        'voucher_id' => $voucher->id,
+                        'user_id' => $request->user()->id,
+                        'ticket_id' => $ticketId,
+                        'voucher_code' => $voucher->code,
+                        'discount_amount' => $discountAmount,
+                        'used_at' => now(),
+                        'created_at' => now(),
                         'updated_at' => now(),
                     ]);
-            }
 
-            return [
-                'ticket_id' => $ticketId,
-                'voucher_code' => $voucher?->code,
-                'discount_amount' => $discountAmount,
-                'final_price' => $finalPrice,
-                'seat_names' => $seatNames->all(),
-            ];
-        });
+                    DB::table('vouchers')
+                        ->where('id', $voucher->id)
+                        ->update([
+                            'used_count' => DB::raw('used_count + 1'),
+                            'updated_at' => now(),
+                        ]);
+                }
 
-        return response()->json([
-            'message' => 'Thanh toán thành công. Vé đã được lưu vào tài khoản của bạn.',
-            'redirect_url' => route('account.index', ['tab' => 'tickets']),
-            'ticket' => $result,
-        ]);
+                return [
+                    'ticket_id' => $ticketId,
+                    'voucher_code' => $voucher?->code,
+                    'discount_amount' => $discountAmount,
+                    'final_price' => $finalPrice,
+                    'total_price' => $baseTotal,
+                    'seat_names' => $seatNames->all(),
+                    'payment_method' => $data['payment_method'],
+                    'email' => $data['email'],
+                    'phone' => $data['phone'],
+                    'reference_code' => 'PAY-'.now()->format('YmdHis').'-'.$ticketId,
+                ];
+            });
+
+            $this->recordPaymentLog([
+                'user_id' => $request->user()->id,
+                'ticket_id' => $result['ticket_id'],
+                'showtime_id' => $showtimeId,
+                'payment_method' => $result['payment_method'],
+                'status' => 'success',
+                'attempted_at' => now(),
+                'amount' => $result['total_price'],
+                'discount_amount' => $result['discount_amount'],
+                'final_amount' => $result['final_price'],
+                'seat_count' => count($result['seat_names']),
+                'voucher_code' => $result['voucher_code'],
+                'reference_code' => $result['reference_code'],
+                'customer_email' => $result['email'],
+                'customer_phone' => $result['phone'],
+                'error_message' => null,
+                'metadata' => [
+                    'seat_names' => $result['seat_names'],
+                ],
+            ]);
+
+            return response()->json([
+                'message' => 'Thanh toán thành công. Vé đã được lưu vào tài khoản của bạn.',
+                'redirect_url' => route('account.index', ['tab' => 'tickets']),
+                'ticket' => $result,
+            ]);
+        } catch (ValidationException $exception) {
+            $this->recordPaymentLog([
+                'user_id' => $request->user()?->id,
+                'ticket_id' => null,
+                'showtime_id' => $showtimeId,
+                'payment_method' => (string) $request->input('payment_method', 'unknown'),
+                'status' => 'failed',
+                'attempted_at' => now(),
+                'amount' => count((array) $request->input('seat_names', [])) * self::SEAT_PRICE,
+                'discount_amount' => 0,
+                'final_amount' => count((array) $request->input('seat_names', [])) * self::SEAT_PRICE,
+                'seat_count' => count((array) $request->input('seat_names', [])),
+                'voucher_code' => $request->input('voucher_code'),
+                'customer_email' => $request->input('email'),
+                'customer_phone' => $request->input('phone'),
+                'error_message' => collect($exception->errors())->flatten()->first(),
+                'metadata' => [
+                    'errors' => $exception->errors(),
+                    'seat_names' => (array) $request->input('seat_names', []),
+                ],
+            ]);
+
+            throw $exception;
+        } catch (\Throwable $exception) {
+            $this->recordPaymentLog([
+                'user_id' => $request->user()?->id,
+                'ticket_id' => null,
+                'showtime_id' => $showtimeId,
+                'payment_method' => (string) $request->input('payment_method', 'unknown'),
+                'status' => 'failed',
+                'attempted_at' => now(),
+                'amount' => count((array) $request->input('seat_names', [])) * self::SEAT_PRICE,
+                'discount_amount' => 0,
+                'final_amount' => count((array) $request->input('seat_names', [])) * self::SEAT_PRICE,
+                'seat_count' => count((array) $request->input('seat_names', [])),
+                'voucher_code' => $request->input('voucher_code'),
+                'customer_email' => $request->input('email'),
+                'customer_phone' => $request->input('phone'),
+                'error_message' => $exception->getMessage(),
+                'metadata' => [
+                    'seat_names' => (array) $request->input('seat_names', []),
+                ],
+            ]);
+
+            Log::error('Booking checkout failed unexpectedly.', [
+                'message' => $exception->getMessage(),
+                'showtime_id' => $showtimeId,
+            ]);
+
+            return response()->json([
+                'message' => 'Thanh toán chưa hoàn tất. Vui lòng thử lại.',
+            ], 500);
+        }
     }
 
     protected function loadAvailableVouchers(): Collection
@@ -307,5 +408,35 @@ class BookingController extends Controller
                 return (int) ($matches[1] ?? 0);
             })->values())
             ->values();
+    }
+
+    private function recordPaymentLog(array $payload): void
+    {
+        try {
+            DB::table('payment_logs')->insert([
+                'user_id' => $payload['user_id'],
+                'ticket_id' => $payload['ticket_id'],
+                'showtime_id' => $payload['showtime_id'],
+                'payment_method' => $payload['payment_method'],
+                'status' => $payload['status'],
+                'attempted_at' => $payload['attempted_at'],
+                'amount' => $payload['amount'],
+                'discount_amount' => $payload['discount_amount'],
+                'final_amount' => $payload['final_amount'],
+                'seat_count' => $payload['seat_count'],
+                'voucher_code' => $payload['voucher_code'],
+                'reference_code' => $payload['reference_code'] ?? null,
+                'customer_email' => $payload['customer_email'],
+                'customer_phone' => $payload['customer_phone'],
+                'error_message' => $payload['error_message'],
+                'metadata' => json_encode($payload['metadata'] ?? [], JSON_UNESCAPED_UNICODE),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        } catch (\Throwable $exception) {
+            Log::warning('Failed to persist payment log.', [
+                'message' => $exception->getMessage(),
+            ]);
+        }
     }
 }

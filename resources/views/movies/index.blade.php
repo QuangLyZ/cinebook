@@ -1,6 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $selectedDateCarbon = \Carbon\Carbon::parse($selectedDate ?? now()->toDateString());
+    $selectedCinemaName = $selectedCinema->name ?? 'Tất Cả Rạp';
+@endphp
 <div class="bg-gray-900 border-b border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 class="text-3xl font-bold text-white mb-6">Đang Chiếu Tại Rạp</h1>
@@ -34,6 +38,12 @@
 </div>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    @if (!empty($dbWarning))
+    <div class="mb-6 rounded-xl border border-yellow-500/40 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-200">
+        <i class="fa-solid fa-triangle-exclamation mr-2"></i>{{ $dbWarning }}
+    </div>
+    @endif
+
     <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
 
         {{-- ===== SIDEBAR RẠP (từ DB) ===== --}}
@@ -45,9 +55,9 @@
             <div class="space-y-2" id="cinemaList">
                 @forelse($cinemas ?? [] as $index => $cinema)
                 <a
-                    href="{{ route('cinemas.show', $cinema->id) }}"
+                    href="{{ route('movies.index', ['cinema' => $cinema->id, 'date' => $selectedDateCarbon->toDateString()]) }}"
                     class="w-full text-left px-4 py-3 rounded-lg flex items-center justify-between transition-colors block
-                        {{ $index === 0 ? 'bg-red-600/20 border border-red-500 text-red-400' : 'bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white' }}"
+                        {{ (int) ($selectedCinemaId ?? 0) === (int) $cinema->id ? 'bg-red-600/20 border border-red-500 text-red-400' : 'bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white' }}"
                 >
                     <span class="font-medium text-sm">{{ $cinema->name }}</span>
                     <i class="fa-solid fa-chevron-right text-xs"></i>
@@ -73,14 +83,17 @@
                     <i class="fa-regular fa-calendar text-red-500 mr-2"></i>Ngày Chiếu
                 </h3>
                 <div class="flex overflow-x-auto gap-2 pb-2 hide-scrollbar">
-                    @for ($i = 0; $i < 5; $i++)
-                    <div class="flex-shrink-0 w-16 h-20 rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors
-                        {{ $i === 0 ? 'bg-red-600 text-white' : 'bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700' }}">
-                        <span class="text-xs uppercase">{{ date('D', strtotime("+{$i} days")) }}</span>
-                        <span class="font-bold text-xl">{{ date('d', strtotime("+{$i} days")) }}</span>
-                        <span class="text-xs">{{ date('M', strtotime("+{$i} days")) }}</span>
-                    </div>
-                    @endfor
+                    @foreach (($availableDates ?? collect()) as $date)
+                    @php
+                        $isActiveDate = $date->toDateString() === $selectedDateCarbon->toDateString();
+                    @endphp
+                    <a href="{{ route('movies.index', ['cinema' => $selectedCinemaId, 'date' => $date->toDateString()]) }}" class="flex-shrink-0 w-16 h-20 rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors
+                        {{ $isActiveDate ? 'bg-red-600 text-white' : 'bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700' }}">
+                        <span class="text-xs uppercase">{{ $date->translatedFormat('D') }}</span>
+                        <span class="font-bold text-xl">{{ $date->format('d') }}</span>
+                        <span class="text-xs">{{ $date->translatedFormat('M') }}</span>
+                    </a>
+                    @endforeach
                 </div>
             </div>
 
@@ -98,7 +111,7 @@
 
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-bold text-white">
-                    {{ date('d/m/Y') }} — Tất Cả Rạp
+                    {{ $selectedDateCarbon->format('d/m/Y') }} — {{ $selectedCinemaName }}
                 </h2>
                 <span class="text-sm text-gray-500" id="movieCount">
                     {{ count($movies ?? []) }} phim
@@ -126,11 +139,13 @@
                     <div class="flex items-center justify-between mb-3">
                         <div class="flex gap-2">
                             <span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded">
-                                {{ $movie->age_limit ?? 'T16' }}
+                                {{ $movie->age_limit ? 'T' . $movie->age_limit : 'P' }}
                             </span>
-                            <span class="text-xs border border-blue-500 text-blue-400 px-2 py-0.5 rounded">
-                                2D Phụ Đề
-                            </span>
+                            @if(isset($movie->showtimes) && $movie->showtimes->count() > 0)
+                                <span class="text-xs border border-blue-500 text-blue-400 px-2 py-0.5 rounded">
+                                    {{ $movie->showtimes->first()->subtitle_name ?: '2D Phụ Đề' }}
+                                </span>
+                            @endif
                         </div>
                         @if(isset($movie->rating))
                         <div class="text-yellow-500 text-sm font-bold">
@@ -167,6 +182,7 @@
                                 <a
                                     href="{{ route('booking.show', $showtime->id) }}"
                                     class="px-4 py-2 bg-gray-900 border border-gray-600 text-gray-200 rounded-md hover:border-red-500 hover:text-red-400 transition-colors text-sm font-medium"
+                                    title="{{ trim(($showtime->cinema_name ?? '') . ' - ' . ($showtime->room_name ?? '')) }}"
                                 >
                                     {{ \Carbon\Carbon::parse($showtime->start_time)->format('H:i') }}
                                 </a>
