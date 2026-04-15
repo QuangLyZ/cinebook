@@ -6,10 +6,10 @@
 @section('content')
 <div class="max-w-4xl animate-[fadeIn_0.5s_ease-in-out]">
     <div class="mb-6 flex items-center gap-4">
-        <a href="{{ route('admin.movies.index') }}" class="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-800 bg-gray-900 text-gray-400 transition hover:bg-gray-800 hover:text-white mb-2">
-            <i class="fa-solid fa-arrow-left"></i>
+        <a href="{{ route('admin.movies.index') }}" class="text-[rgb(255,255,255)] transition hover:text-gray-300">
+            <i class="fa-solid fa-chevron-left text-2xl"></i>
         </a>
-        <div class="mb-2">
+        <div>
             <h2 class="text-2xl font-extrabold tracking-tight text-white">{{ $pageTitle }}</h2>
         </div>
     </div>

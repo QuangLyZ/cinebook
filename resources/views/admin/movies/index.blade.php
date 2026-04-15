@@ -6,9 +6,14 @@
 @section('content')
 <div class="space-y-6 animate-[fadeIn_0.5s_ease-in-out]">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h2 class="text-2xl font-extrabold tracking-tight text-white">Danh sách Phim</h2>
-            <p class="mt-1 text-sm text-gray-400">Quản lý toàn bộ thư viện phim chiếu rạp của hệ thống.</p>
+        <div class="flex items-center gap-4">
+            <a href="{{ route('admin.management') }}" class="text-[rgb(255,255,255)] transition hover:text-gray-300">
+                <i class="fa-solid fa-chevron-left text-2xl"></i>
+            </a>
+            <div>
+                <h2 class="text-2xl font-extrabold tracking-tight text-white">Danh sách Phim</h2>
+                <p class="mt-1 text-sm text-gray-400">Quản lý toàn bộ thư viện phim chiếu rạp của hệ thống.</p>
+            </div>
         </div>
         <a href="{{ route('admin.movies.create') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-red-900/30 transition hover:bg-red-700">
             <i class="fa-solid fa-plus"></i>

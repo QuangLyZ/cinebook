@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\BookingTicketMail;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Contracts\View\View;
@@ -10,6 +11,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
@@ -60,7 +63,7 @@ class BookingController extends Controller
                 $availableVouchers = $this->loadAvailableVouchers();
             }
         } catch (QueryException) {
-            // Render the fallback UI below when the schema is unavailable.
+            // Keep the booking UI renderable even if local schema is incomplete.
         }
 
         $startTime = $showtime?->start_time ? Carbon::parse($showtime->start_time) : null;
@@ -220,6 +223,7 @@ class BookingController extends Controller
                         ]);
                 }
 
+<<<<<<< HEAD
                 return [
                     'ticket_id' => $ticketId,
                     'voucher_code' => $voucher?->code,
@@ -313,6 +317,21 @@ class BookingController extends Controller
                 'message' => 'Thanh toán chưa hoàn tất. Vui lòng thử lại.',
             ], 500);
         }
+=======
+        if ($data['payment_method'] === 'vnpay') {
+            $paymentUrl = $this->createVnpayUrl($result['final_price'], $result['ticket_id']);
+
+            return response()->json(['payment_url' => $paymentUrl]);
+        }
+
+        $this->sendTicketConfirmationEmail($result['ticket_id'], $data['payment_method']);
+
+        return response()->json([
+            'message' => 'Thanh toán thành công. Vé đã được lưu vào tài khoản của bạn.',
+            'redirect_url' => route('account.index', ['tab' => 'tickets']),
+            'ticket' => $result,
+        ]);
+>>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783
     }
 
     protected function loadAvailableVouchers(): Collection
@@ -410,6 +429,7 @@ class BookingController extends Controller
             ->values();
     }
 
+<<<<<<< HEAD
     private function recordPaymentLog(array $payload): void
     {
         try {
@@ -435,8 +455,146 @@ class BookingController extends Controller
             ]);
         } catch (\Throwable $exception) {
             Log::warning('Failed to persist payment log.', [
+=======
+    private function createVnpayUrl(int $amount, int $ticketId): string
+    {
+        $vnpUrl = env('VNP_URL');
+        $vnpTmnCode = env('VNP_TMN_CODE');
+        $vnpHashSecret = env('VNP_HASH_SECRET');
+
+        $inputData = [
+            'vnp_Version' => '2.1.0',
+            'vnp_TmnCode' => $vnpTmnCode,
+            'vnp_Amount' => $amount * 100,
+            'vnp_Command' => 'pay',
+            'vnp_CreateDate' => date('YmdHis'),
+            'vnp_CurrCode' => 'VND',
+            'vnp_IpAddr' => request()->ip(),
+            'vnp_Locale' => 'vn',
+            'vnp_OrderInfo' => 'Thanh toan ve xem phim APC-TICKET',
+            'vnp_OrderType' => 'billpayment',
+            'vnp_ReturnUrl' => env('VNP_RETURN_URL'),
+            'vnp_TxnRef' => $ticketId,
+        ];
+
+        ksort($inputData);
+
+        $query = '';
+        $hashData = '';
+        $index = 0;
+
+        foreach ($inputData as $key => $value) {
+            $pair = urlencode($key).'='.urlencode((string) $value);
+            $hashData .= $index === 0 ? $pair : '&'.$pair;
+            $query .= $pair.'&';
+            $index++;
+        }
+
+        $secureHash = hash_hmac('sha512', $hashData, (string) $vnpHashSecret);
+
+        return $vnpUrl.'?'.$query.'vnp_SecureHash='.$secureHash;
+    }
+
+    public function vnpayReturn(Request $request)
+    {
+        $ticketId = (int) $request->vnp_TxnRef;
+
+        if ($request->vnp_ResponseCode === '00') {
+            $this->sendTicketConfirmationEmail($ticketId, 'vnpay');
+
+            return redirect()->route('account.index', ['tab' => 'tickets'])->with('success', 'Thanh toán thành công!');
+        }
+
+        $showtimeId = DB::table('tickets')->where('id', $ticketId)->value('showtime_id');
+
+        if ($showtimeId) {
+            return redirect()->route('booking.show', ['id' => $showtimeId])->with('error', 'Thanh toán thất bại!');
+        }
+
+        return redirect()->route('account.index', ['tab' => 'tickets'])->with('error', 'Thanh toán thất bại!');
+    }
+
+    protected function sendTicketConfirmationEmail(int $ticketId, string $paymentMethod): void
+    {
+        $ticket = $this->buildTicketMailData($ticketId, $paymentMethod);
+
+        if (! $ticket || blank($ticket->email)) {
+            return;
+        }
+
+        try {
+            Mail::to($ticket->email)->send(new BookingTicketMail($ticket));
+        } catch (\Throwable $exception) {
+            Log::error('Không thể gửi email vé xem phim.', [
+                'ticket_id' => $ticketId,
+                'email' => $ticket->email,
+>>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783
                 'message' => $exception->getMessage(),
             ]);
         }
     }
+<<<<<<< HEAD
+=======
+
+    protected function buildTicketMailData(int $ticketId, string $paymentMethod): ?object
+    {
+        $ticket = DB::table('tickets')
+            ->join('showtimes', 'showtimes.id', '=', 'tickets.showtime_id')
+            ->join('movies', 'movies.id', '=', 'showtimes.movie_id')
+            ->join('rooms', 'rooms.id', '=', 'showtimes.room_id')
+            ->join('cinemas', 'cinemas.id', '=', 'rooms.cinema_id')
+            ->leftJoin('voucher_usages', 'voucher_usages.ticket_id', '=', 'tickets.id')
+            ->where('tickets.id', $ticketId)
+            ->select([
+                'tickets.id',
+                'tickets.fullname',
+                'tickets.email',
+                'tickets.phone',
+                'tickets.booking_date',
+                'tickets.total_price',
+                'tickets.final_price',
+                'movies.name as movie_name',
+                'movies.age_limit',
+                'showtimes.start_time',
+                'rooms.name as room_name',
+                'cinemas.name as cinema_name',
+                'cinemas.address as cinema_address',
+                'voucher_usages.voucher_code',
+                'voucher_usages.discount_amount',
+            ])
+            ->first();
+
+        if (! $ticket) {
+            return null;
+        }
+
+        $seats = DB::table('ticket_details')
+            ->join('seats', 'seats.id', '=', 'ticket_details.seat_id')
+            ->where('ticket_details.ticket_id', $ticketId)
+            ->orderBy('seats.seat_name')
+            ->pluck('seats.seat_name')
+            ->map(fn ($seatName) => strtoupper($seatName))
+            ->values()
+            ->all();
+
+        $bookingDate = $ticket->booking_date ? Carbon::parse($ticket->booking_date) : null;
+        $startTime = $ticket->start_time ? Carbon::parse($ticket->start_time) : null;
+        $discountAmount = (float) ($ticket->discount_amount ?? 0);
+        $totalPrice = (float) ($ticket->total_price ?? 0);
+        $storedFinalPrice = $ticket->final_price !== null ? (float) $ticket->final_price : null;
+
+        $ticket->booking_date = $bookingDate;
+        $ticket->start_time = $startTime;
+        $ticket->seat_names = $seats;
+        $ticket->seat_list = implode(', ', $seats);
+        $ticket->discount_amount = $discountAmount;
+        $ticket->final_price = $storedFinalPrice ?? max($totalPrice - $discountAmount, 0);
+        $ticket->payment_method_label = match (strtolower($paymentMethod)) {
+            'paypal' => 'PayPal',
+            default => 'VNPay',
+        };
+
+        return $ticket;
+    }
+>>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783
 }

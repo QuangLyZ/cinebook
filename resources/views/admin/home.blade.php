@@ -448,12 +448,48 @@
                 </div>
             </div>
         </section>
-@elseif ($activeTab === 'posts')
- <div class="max-w-5xl mx-auto rounded-[2rem] border border-dashed border-gray-700 bg-gray-900/40 p-8 text-center animate-[fadeIn_0.5s_ease-in-out]">
-<div class="max-w-5xl mx-auto space-y-8">
-    <!-- FORM -->
-<form action="{{ route('admin.posts.store') }}" method="POST">
+    @elseif ($activeTab === 'posts')
+        <div class="space-y-6 animate-[fadeIn_0.5s_ease-in-out]">
+            <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <div class="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-red-300">
+                        <i class="fa-solid fa-newspaper"></i>
+                        Content Hub
+                    </div>
+                    <h2 class="mt-3 text-3xl font-extrabold tracking-tight text-white md:text-4xl">Bài viết gần đây</h2>
+                    <p class="mt-2 text-gray-400">Danh sách bài viết để admin theo dõi nhanh trước khi vào khu quản lý chi tiết.</p>
+                </div>
+                <a href="{{ route('admin.posts.index') }}"
+                   class="inline-flex items-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-red-950/30 transition hover:bg-red-700">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    Mở quản lý bài viết
+                </a>
+            </div>
 
+<<<<<<< HEAD
+=======
+            <div class="grid gap-4">
+                @forelse(($posts ?? collect()) as $post)
+                    <article class="rounded-[2rem] border border-gray-800 bg-gray-900/80 p-5 shadow-lg shadow-black/10 transition hover:border-gray-700">
+                        <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                            <div>
+                                <h3 class="text-xl font-bold text-white">{{ $post->title }}</h3>
+                                <p class="mt-2 text-sm text-gray-400">{{ $post->keywords ?: 'Chưa có từ khóa' }}</p>
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                {{ $post->publish_at ?? 'Đăng ngay' }}
+                            </div>
+                        </div>
+                    </article>
+                @empty
+                    <div class="rounded-[2rem] border border-dashed border-gray-700 bg-gray-900/40 px-6 py-14 text-center text-gray-400">
+                        Chưa có bài viết nào để hiển thị.
+                    </div>
+                @endforelse
+            </div>
+        </div>
+
+>>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783
     @elseif ($activeTab === 'actions')
         @php
             $vouchers = $vouchers ?? collect();
@@ -817,7 +853,12 @@
                         <i class="fa-solid fa-layer-group"></i>
                         Trung Tâm Quản Lý
                     </div>
-                    <h2 class="text-3xl font-extrabold tracking-tight text-white md:text-4xl">Tổng Quan Quản Lý</h2>
+                    <div class="flex items-center gap-4">
+                        <a href="{{ route('admin.dashboard') }}" class="text-[rgb(255,255,255)] transition hover:text-gray-300">
+                            <i class="fa-solid fa-chevron-left text-3xl md:text-4xl"></i>
+                        </a>
+                        <h2 class="text-3xl font-extrabold tracking-tight text-white md:text-4xl">Tổng Quan Quản Lý</h2>
+                    </div>
                     <p class="mt-2 text-gray-400">Chọn module bên dưới để quản lý từng phần của hệ thống CineBook.</p>
                 </div>
                 <div class="flex items-center gap-3 text-sm text-gray-500">
@@ -892,24 +933,6 @@
                 </div>
             </div>
         </div>
-</form>
-
-    <!-- LIST -->
-    <div class="space-y-4">
-        @foreach($posts ?? [] as $post)
-            <div class="p-4 bg-gray-800 rounded">
-                <h3 class="text-xl text-white">{{ $post->title }}</h3>
-                <p class="text-gray-400 text-sm">{{ $post->keywords }}</p>
-                <p class="text-gray-500 text-xs">
-                    {{ $post->publish_at ?? 'Đăng ngay' }}
-                </p>
-            </div>
-
-        @endforeach
-    </div>
-
-</div>
-</div>
     @else
     
         <!-- Placeholder cho các Tab chưa làm -->
@@ -932,6 +955,7 @@
         </div>
     @endif
 @endsection
+<<<<<<< HEAD
 
 @section('scripts')
 <style>
@@ -987,3 +1011,5 @@
 }
 </style>
 @endsection
+=======
+>>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783

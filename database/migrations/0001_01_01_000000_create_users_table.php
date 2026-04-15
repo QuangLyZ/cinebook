@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('avatar')->nullable();
             $table->string('username')->nullable();
             $table->string('security_code')->nullable();
+            $table->boolean('admin_role')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });

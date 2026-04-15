@@ -84,6 +84,7 @@ class MovieController extends Controller
 
     public function list(Request $request): View
     {
+<<<<<<< HEAD
         $cinemas = collect();
         $movies = collect();
         $availableDates = collect();
@@ -280,5 +281,10 @@ class MovieController extends Controller
         }
 
         return $availableDates->first()->toDateString();
+=======
+        $movies = Movie::all();
+        $cinemas = \App\Models\Cinema::all();
+        return view('movies.index', compact('movies', 'cinemas'));
+>>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783
     }
 }

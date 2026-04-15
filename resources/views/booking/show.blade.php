@@ -250,6 +250,7 @@
             csrf: @json(csrf_token()),
             isAuthenticated: @json(auth()->check()),
             vouchers: @json($availableVoucherPayload),
+            successPopupStorageKey: 'cinebook_payment_success_popup',
         };
 
         const vouchersByCode = bookingConfig.vouchers.reduce((map, voucher) => {
@@ -515,20 +516,24 @@
                 const payload = await response.json();
 
                 if (!response.ok) {
-                    if (response.status === 401 && payload.login_url) {
-                        showFormError(payload.message || 'Bạn cần đăng nhập để tiếp tục.');
-                        window.setTimeout(() => {
-                            window.location.href = payload.login_url;
-                        }, 1200);
-                        return;
-                    }
-
                     const errorText = payload.message || Object.values(payload.errors || {}).flat().join(' ') || 'Thanh toán thất bại.';
                     showFormError(errorText);
                     return;
                 }
 
-                alert(payload.message || 'Thanh toán thành công.');
+                if (payload.payment_url) {
+                    window.location.href = payload.payment_url;
+                    return;
+                }
+
+                try {
+                    sessionStorage.setItem(bookingConfig.successPopupStorageKey, JSON.stringify({
+                        title: 'Thanh toán thành công',
+                        message: 'Vé của bạn đã được thanh toán và được gửi qua email.',
+                    }));
+                } catch (error) {
+                    // Ignore storage errors and continue redirecting to the account page.
+                }
                 window.location.href = payload.redirect_url || bookingConfig.accountUrl;
             } catch (error) {
                 showFormError('Không thể kết nối tới hệ thống thanh toán. Vui lòng thử lại.');
