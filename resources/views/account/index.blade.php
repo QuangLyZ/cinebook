@@ -202,5 +202,103 @@
             </div>
         @endif
     </section>
+
+    <div
+        id="paymentSuccessModal"
+        class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/70 px-4 backdrop-blur-sm"
+        aria-hidden="true"
+    >
+        <div class="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-emerald-400/20 bg-gray-900 shadow-2xl shadow-emerald-950/20">
+            <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-400"></div>
+            <button
+                id="closePaymentSuccessModal"
+                type="button"
+                class="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-gray-300 transition hover:border-emerald-400/40 hover:text-white"
+                aria-label="Đóng thông báo thanh toán"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="px-8 py-10 text-center">
+                <div class="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-emerald-500/15 ring-8 ring-emerald-500/10">
+                    <div class="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/30">
+                        <i class="fa-solid fa-check text-3xl"></i>
+                    </div>
+                </div>
+
+                <div class="mt-6 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-300">Payment Success</div>
+                <h3 id="paymentSuccessTitle" class="mt-3 text-3xl font-extrabold tracking-tight text-white">Thanh toán thành công</h3>
+                <p id="paymentSuccessMessage" class="mt-4 text-sm leading-7 text-gray-300">
+                    Vé của bạn đã được thanh toán và được gửi qua email.
+                </p>
+
+                <button
+                    id="confirmPaymentSuccessModal"
+                    type="button"
+                    class="mt-8 inline-flex items-center justify-center rounded-2xl bg-emerald-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-400"
+                >
+                    Xem vé của tôi
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('paymentSuccessModal');
+        const closeButton = document.getElementById('closePaymentSuccessModal');
+        const confirmButton = document.getElementById('confirmPaymentSuccessModal');
+        const titleElement = document.getElementById('paymentSuccessTitle');
+        const messageElement = document.getElementById('paymentSuccessMessage');
+        const storageKey = 'cinebook_payment_success_popup';
+        const sessionPopup = @json(session('success') === 'Thanh toán thành công!' ? [
+            'title' => 'Thanh toán thành công',
+            'message' => 'Vé của bạn đã được thanh toán và được gửi qua email.',
+        ] : null);
+
+        function hideModal() {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        function showModal(data) {
+            titleElement.textContent = data.title || 'Thanh toán thành công';
+            messageElement.textContent = data.message || 'Vé của bạn đã được thanh toán và được gửi qua email.';
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            modal.setAttribute('aria-hidden', 'false');
+        }
+
+        function readPopupFromStorage() {
+            try {
+                const rawValue = sessionStorage.getItem(storageKey);
+                if (!rawValue) {
+                    return null;
+                }
+
+                sessionStorage.removeItem(storageKey);
+                return JSON.parse(rawValue);
+            } catch (error) {
+                sessionStorage.removeItem(storageKey);
+                return null;
+            }
+        }
+
+        const popupData = sessionPopup || readPopupFromStorage();
+
+        if (popupData) {
+            showModal(popupData);
+        }
+
+        closeButton.addEventListener('click', hideModal);
+        confirmButton.addEventListener('click', hideModal);
+        modal.addEventListener('click', function (event) {
+            if (event.target === modal) {
+                hideModal();
+            }
+        });
+    });
+</script>
 @endsection
