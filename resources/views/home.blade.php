@@ -1,31 +1,54 @@
 @extends('layouts.app')
 @section('content')
+@php
+    $heroMovie = $featuredMovie ?? null;
+    $heroPoster = filled($heroMovie?->poster)
+        ? $heroMovie->poster
+        : 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2000&auto=format&fit=crop';
+    $heroBookingUrl = filled($heroMovie?->booking_showtime_id)
+        ? route('booking.show', $heroMovie->booking_showtime_id)
+        : route('movies.index');
+@endphp
 <!-- Hero Section -->
 <div class="relative bg-black text-white">
     <div class="absolute inset-0">
         <!-- Mock Hero Background -->
-        <img class="w-full h-full object-cover opacity-50" src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2000&auto=format&fit=crop" alt="Hero Movie">
+        <img class="w-full h-full object-cover opacity-50" src="{{ $heroPoster }}" alt="{{ $heroMovie?->name ?? 'Hero Movie' }}">
         <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
     </div>
     
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 flex flex-col justify-end min-h-[500px]">
         <h1 class="text-5xl font-extrabold tracking-tight mb-4 text-white">
-            <span class="block">SIÊU BOM TẤN MÙA HÈ</span>
-            <span class="block text-red-500">AVENGERS: SECRET WARS</span>
+            <span class="block">SIÊU PHẨM NỔI BẬT</span>
+            <span class="block text-red-500">{{ $heroMovie?->name ?? 'AVENGERS: SECRET WARS' }}</span>
         </h1>
         <p class="mt-4 max-w-xl text-xl text-gray-300">
-            Cuộc chiến cuối cùng định đoạt số phận của đa vũ trụ. Khám phá ngay siêu phẩm được mong chờ nhất thập kỷ tại CineBook!
+            {{ $heroMovie?->description ? \Illuminate\Support\Str::limit($heroMovie->description, 160) : 'Cuộc chiến cuối cùng định đoạt số phận của đa vũ trụ. Khám phá ngay siêu phẩm được mong chờ nhất thập kỷ tại CineBook!' }}
         </p>
         <div class="mt-8 flex gap-4">
-            <a href="/booking/1" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg transition-colors shadow-lg shadow-red-500/30 flex items-center">
+            <a href="{{ $heroBookingUrl }}" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg transition-colors shadow-lg shadow-red-500/30 flex items-center">
                 <i class="fa-solid fa-ticket mr-2"></i> ĐẶT VÉ NGAY
             </a>
-            <button class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg transition-colors border border-gray-600 flex items-center">
-                <i class="fa-solid fa-play mr-2"></i> XEM TRAILER
-            </button>
+            @if (filled($heroMovie?->trailer_link))
+                <a href="{{ $heroMovie->trailer_link }}" target="_blank" rel="noopener noreferrer" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg transition-colors border border-gray-600 flex items-center">
+                    <i class="fa-solid fa-play mr-2"></i> XEM TRAILER
+                </a>
+            @else
+                <button class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg transition-colors border border-gray-600 flex items-center">
+                    <i class="fa-solid fa-play mr-2"></i> XEM TRAILER
+                </button>
+            @endif
         </div>
     </div>
 </div>
+
+@if (!empty($dbWarning))
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+    <div class="rounded-xl border border-yellow-500/40 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-200">
+        <i class="fa-solid fa-triangle-exclamation mr-2"></i>{{ $dbWarning }}
+    </div>
+</div>
+@endif
 
 <!-- Phim Đang Chiếu -->
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -48,14 +71,20 @@
             
             <div class="absolute bottom-0 w-full p-4">
                 <div class="flex items-center space-x-2 mb-2">
-                    <span class="bg-red-600 outline outline-1 outline-white text-white text-xs font-bold px-2 py-0.5 rounded">T{{ $movie->age_limit }}</span>
+                    <span class="bg-red-600 outline outline-1 outline-white text-white text-xs font-bold px-2 py-0.5 rounded">{{ $movie->age_limit ? 'T' . $movie->age_limit : 'P' }}</span>
                     <span class="text-gray-300 text-xs"><i class="fa-solid fa-star text-yellow-500 mr-1"></i>4.8</span>
                 </div>
                 <h3 class="text-lg font-bold text-white mb-1 line-clamp-1">{{ $movie->name }}</h3>
                 <p class="text-gray-400 text-sm mb-3">{{ $movie->genre }}</p>
-                <a href="{{ route('booking.show', $movie->id) }}" class="block w-full text-center bg-gray-700 group-hover:bg-red-600 text-white py-2 rounded font-medium transition-colors">
-                    MUA VÉ
-                </a>
+                @if (filled($movie->booking_showtime_id))
+                    <a href="{{ route('booking.show', $movie->booking_showtime_id) }}" class="block w-full text-center bg-gray-700 group-hover:bg-red-600 text-white py-2 rounded font-medium transition-colors">
+                        MUA VÉ
+                    </a>
+                @else
+                    <a href="{{ route('movies.index') }}" class="block w-full text-center bg-gray-700 group-hover:bg-red-600 text-white py-2 rounded font-medium transition-colors">
+                        XEM LỊCH CHIẾU
+                    </a>
+                @endif
             </div>
         </div>
         @endforeach
@@ -75,7 +104,7 @@
             <div class="group relative rounded-xl overflow-hidden bg-gray-800">
                 <img src="{{ $movie->poster ?? 'https://images.unsplash.com/photo-1509281373149-e957c6296406?q=80&w=400&h=600&auto=format&fit=crop' }}" class="w-full h-80 object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt="{{ $movie->name }}">
                 <div class="absolute top-3 right-3 bg-black/70 backdrop-blur-sm text-yellow-500 px-3 py-1 rounded-full text-sm font-bold border border-yellow-500/50">
-                    {{ \Carbon\Carbon::parse($movie->release_date)->format('d.m.Y') }}
+                    {{ $movie->release_date ? \Carbon\Carbon::parse($movie->release_date)->format('d.m.Y') : 'Sắp ra mắt' }}
                 </div>
                 <div class="absolute bottom-0 w-full p-4 bg-gradient-to-t from-gray-900 to-transparent">
                     <h3 class="text-lg font-bold text-white mb-1">{{ $movie->name }}</h3>
@@ -91,6 +120,25 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
     <h2 class="text-3xl font-bold text-white mb-8 border-l-4 border-blue-500 pl-3">Tin Tức & Khuyến Mãi</h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        @forelse (($posts ?? collect()) as $post)
+        <div class="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 hover:border-blue-500/50 transition-colors">
+            <img src="https://images.unsplash.com/photo-1485001564903-56e6ca3736d8?q=80&w=600&h=300&auto=format&fit=crop" class="w-full h-48 object-cover" alt="News Image">
+            <div class="p-6">
+                <div class="text-blue-400 text-xs font-bold uppercase mb-2">
+                    {{ $post->keywords ? \Illuminate\Support\Str::limit($post->keywords, 24) : 'Khuyến Mãi' }}
+                </div>
+                <h3 class="text-xl font-bold text-white mb-3 hover:text-blue-400 cursor-pointer">
+                    {{ $post->title }}
+                </h3>
+                <p class="text-gray-400 text-sm line-clamp-3">
+                    {{ \Illuminate\Support\Str::limit(strip_tags($post->content), 140) }}
+                </p>
+                <div class="mt-4 text-gray-500 text-sm flex items-center">
+                    <i class="fa-regular fa-calendar mr-2"></i> {{ optional($post->publish_at ?? $post->created_at)->format('d/m/Y') }}
+                </div>
+            </div>
+        </div>
+        @empty
         @for ($i = 1; $i <= 3; $i++)
         <div class="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 hover:border-blue-500/50 transition-colors">
             <img src="https://images.unsplash.com/photo-1485001564903-56e6ca3736d8?q=80&w=600&h=300&auto=format&fit=crop" class="w-full h-48 object-cover" alt="News Image">
@@ -106,6 +154,7 @@
             </div>
         </div>
         @endfor
+        @endforelse
     </div>
 </div>
 @endsection
