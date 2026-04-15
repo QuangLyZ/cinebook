@@ -4,7 +4,6 @@
 @section('page-title', 'Bài Viết')
 
 @section('content')
-<<<<<<< HEAD
 @php
     $statusColors = [
         'published' => 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300',
@@ -19,6 +18,16 @@
 @endphp
 
 <div class="space-y-8 animate-[fadeIn_0.5s_ease-in-out]">
+    <div class="flex items-center gap-4">
+        <a href="{{ route('admin.management') }}" class="text-white transition hover:text-gray-300">
+            <i class="fa-solid fa-chevron-left text-2xl"></i>
+        </a>
+        <div>
+            <h2 class="text-2xl font-extrabold tracking-tight text-white">Danh sách Bài Viết</h2>
+            <p class="mt-1 text-sm text-gray-400">Xem và quản lý các bài viết đã được đăng lên hệ thống.</p>
+        </div>
+    </div>
+
     @if ($errors->any())
         <div class="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-300">
             <div class="font-bold text-white">Không thể lưu bài viết</div>
@@ -33,98 +42,9 @@
     @if (session('success'))
         <div class="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm text-emerald-300">
             {{ session('success') }}
-=======
-<div class="space-y-6 animate-[fadeIn_0.5s_ease-in-out]">
-    <div class="flex items-center gap-4">
-        <a href="{{ route('admin.management') }}" class="text-white transition hover:text-gray-300">
-            <i class="fa-solid fa-chevron-left text-2xl"></i>
-        </a>
-        <div>
-            <h2 class="text-2xl font-extrabold tracking-tight text-white">Danh sách Bài Viết</h2>
-            <p class="mt-1 text-sm text-gray-400">Xem và quản lý các bài viết đã được đăng lên hệ thống.</p>
-        </div>
-    </div>
-
-    <div class="overflow-hidden rounded-3xl border border-gray-800 bg-gray-900/70 shadow-xl">
-        <div class="overflow-x-auto">
-            <table class="w-full table-fixed whitespace-nowrap text-left text-sm">
-                <thead class="border-b border-gray-800 bg-gray-950/50 uppercase text-gray-400">
-                    <tr>
-                        <th class="w-[40%] px-6 py-4 text-center">Bài viết</th>
-                        <th class="w-[25%] px-6 py-4 text-center">Tác giả</th>
-                        <th class="w-[20%] px-6 py-4 text-center">Trạng thái</th>
-                        <th class="w-[15%] px-6 py-4 text-center">Ngày đăng</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-800">
-                    @forelse ($posts as $post)
-                        <tr class="transition-colors hover:bg-gray-800/50">
-                            <td class="max-w-xs px-6 py-4">
-                                <div class="truncate font-bold text-white">{{ $post->title }}</div>
-                                <div class="mt-1 line-clamp-1 text-xs text-gray-500">{{ \Illuminate\Support\Str::limit($post->context ?? '', 80) }}</div>
-                            </td>
-                            <td class="px-6 py-4 text-center">
-                                <div class="flex flex-col items-center">
-                                    <span class="font-semibold text-gray-200">{{ $post->author_name }}</span>
-                                    <span class="mt-0.5 text-xs text-gray-500">{{ $post->author_email }}</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 text-center">
-                                @php
-                                    $statusColors = [
-                                        'published' => 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-                                        'draft' => 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-                                        'archived' => 'bg-gray-500/10 text-gray-400 border-gray-500/20',
-                                    ];
-                                    $statusLabels = [
-                                        'published' => 'Đã đăng',
-                                        'draft' => 'Bản nháp',
-                                        'archived' => 'Lưu trữ',
-                                    ];
-                                    $statusKey = $post->status ?? 'published';
-                                    $colorClass = $statusColors[$statusKey] ?? $statusColors['published'];
-                                    $statusLabel = $statusLabels[$statusKey] ?? 'Đã đăng';
-                                @endphp
-                                <span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold {{ $colorClass }}">
-                                    <span class="h-1.5 w-1.5 rounded-full {{ str_contains($colorClass, 'emerald') ? 'bg-emerald-400' : (str_contains($colorClass, 'amber') ? 'bg-amber-400' : 'bg-gray-400') }}"></span>
-                                    {{ $statusLabel }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-center text-xs text-gray-400">
-                                {{ \Carbon\Carbon::parse($post->created_at)->format('d/m/Y H:i') }}
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="4" class="px-6 py-12 text-center text-gray-500">
-                                <div class="flex flex-col items-center">
-                                    <i class="fa-solid fa-newspaper mb-3 text-4xl text-gray-700"></i>
-                                    <p>Chưa có bài viết nào được đăng.</p>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        @if (method_exists($posts, 'hasPages') && $posts->hasPages())
-            <div class="border-t border-gray-800 px-6 py-4">
-                {{ $posts->links() }}
-            </div>
-        @endif
-    </div>
-
-    <form action="{{ route('admin.posts.store') }}" method="POST" class="space-y-6">
-        @csrf
-
-        <div>
-            <h3 class="my-7 block text-center text-2xl font-bold text-gray-300">TẠO BÀI VIẾT MỚI</h3>
->>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783
         </div>
     @endif
 
-<<<<<<< HEAD
     <section class="grid gap-8 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
         <form id="postCreateForm" action="{{ route('admin.posts.store') }}" method="POST" class="rounded-[2rem] border border-gray-800 bg-gray-900/80 p-6 shadow-xl shadow-black/10">
             @csrf
@@ -255,7 +175,7 @@
                                             </span>
                                         </td>
                                         <td class="px-4 py-4 text-xs text-gray-400">
-                                            {{ $post->publish_at?->format('d/m/Y H:i') ?: 'Đăng ngay' }}
+                                            {{ $post->publish_at ? \Carbon\Carbon::parse($post->publish_at)->format('d/m/Y H:i') : 'Đăng ngay' }}
                                         </td>
                                     </tr>
                                 @empty
@@ -278,74 +198,6 @@
             </div>
         </div>
     </section>
-=======
-        <div class="mx-auto max-w-4xl space-y-6 rounded-2xl border border-gray-800 bg-gray-900/60 p-6 shadow-xl backdrop-blur-xl">
-            <div>
-                <strong class="mb-4 block text-center text-gray-400">TIÊU ĐỀ</strong>
-                <input
-                    type="text"
-                    name="title"
-                    placeholder="Nhập tiêu đề..."
-                    class="w-full rounded-xl border border-gray-700 bg-gray-950 p-3 text-white outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500"
-                >
-            </div>
-
-            <div>
-                <strong class="mb-4 block text-center text-gray-400">KEYWORDS</strong>
-                <input
-                    type="text"
-                    name="keywords"
-                    placeholder="vd: phim hay, cinema..."
-                    class="w-full rounded-xl border border-gray-700 bg-gray-950 p-3 text-white outline-none transition focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
-                >
-            </div>
-
-            <div>
-                <strong class="mb-4 block text-center text-gray-400">THỜI GIAN ĐĂNG</strong>
-                <input
-                    type="text"
-                    id="publish_at"
-                    name="publish_at"
-                    placeholder="Chọn ngày giờ đăng..."
-                    value="{{ old('publish_at') }}"
-                    class="mt-1 w-full rounded-xl border border-gray-700 bg-gray-950 p-3 text-white outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500"
-                >
-            </div>
-
-            <div>
-                <strong class="mb-4 block text-center text-gray-400">NỘI DUNG BÀI VIẾT</strong>
-                <textarea id="editor" class="ckeditor" name="content"></textarea>
-                <style>
-                    .ck-editor__editable { min-height: 200px; background: #111827 !important; color: #ffffff !important; }
-                </style>
-            </div>
-
-            <div class="flex items-center justify-between text-center">
-                <button class="rounded-xl bg-gradient-to-r from-pink-500 to-red-500 px-6 py-3 font-semibold text-white shadow-lg transition hover:opacity-90">
-                    Đăng bài
-                </button>
-
-                @if(session('success'))
-                    <p class="text-green-400">
-                        {{ session('success') }}
-                    </p>
-                @endif
-            </div>
-        </div>
-    </form>
-
-    <div class="space-y-4">
-        @foreach($posts ?? [] as $post)
-            <div class="rounded bg-gray-800 p-4">
-                <h3 class="text-xl text-white">{{ $post->title }}</h3>
-                <p class="text-sm text-gray-400">{{ $post->keywords }}</p>
-                <p class="text-xs text-gray-500">
-                    {{ $post->publish_at ?? 'Đăng ngay' }}
-                </p>
-            </div>
-        @endforeach
-    </div>
->>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783
 </div>
 @endsection
 
@@ -356,7 +208,6 @@
 let editorInstance = null;
 
 document.addEventListener('DOMContentLoaded', function () {
-<<<<<<< HEAD
     const editorElement = document.querySelector('#editor');
     const dropzone = document.getElementById('thumbnailDropzone');
     const pickerButton = document.getElementById('thumbnailPickerButton');
@@ -371,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const removeButton = document.getElementById('removeThumbnailButton');
     const form = document.getElementById('postCreateForm');
     const submitButton = document.getElementById('submitPostButton');
-    const uploadUrl = @json(route('admin.posts.upload-thumbnail'));
+    const uploadUrl = @json(route('admin.posts.upload-thumbnail') ?? '#');
     let isUploadingThumbnail = false;
 
     if (editorElement && !editorInstance) {
@@ -405,15 +256,9 @@ document.addEventListener('DOMContentLoaded', function () {
             emptyState.classList.remove('hidden');
         }
     };
-=======
-    const el = document.querySelector('#editor');
-
-    if (!el || editorInstance) {
-        return;
-    }
->>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783
 
     const setStatus = (message, tone = 'default') => {
+        if (!statusLabel) return;
         const toneClass = {
             default: 'text-gray-400',
             success: 'text-emerald-400',
@@ -426,6 +271,7 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     const syncSubmitState = () => {
+        if (!submitButton) return;
         submitButton.disabled = isUploadingThumbnail;
 
         if (isUploadingThumbnail) {
@@ -436,7 +282,7 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     const uploadThumbnail = async (file) => {
-        if (!file) {
+        if (!file || uploadUrl === '#') {
             return;
         }
 
@@ -463,7 +309,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!response.ok) {
                 throw new Error(payload.message || 'Upload thất bại.');
             }
-<<<<<<< HEAD
 
             setThumbnail(payload.url);
             setStatus(payload.message || 'Tải thumbnail thành công.', 'success');
@@ -496,15 +341,6 @@ document.addEventListener('DOMContentLoaded', function () {
         dropzone?.addEventListener(eventName, (event) => {
             event.preventDefault();
             dropzone.classList.add('border-red-500');
-=======
-        })
-        .then(editor => {
-            editorInstance = editor;
-            console.log('CKEditor READY');
-        })
-        .catch(error => {
-            console.error(error);
->>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783
         });
     });
 
@@ -516,6 +352,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     dropzone?.addEventListener('drop', (event) => {
+        event.preventDefault();
+        dropzone.classList.remove('border-red-500');
         const [file] = event.dataTransfer.files || [];
         uploadThumbnail(file);
     });

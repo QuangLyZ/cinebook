@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', $pageTitle)
 @section('page-title', $pageTitle)
@@ -90,7 +90,7 @@
                                             </div>
                                             <div class="flex justify-end gap-3">
                                                 <button type="button" onclick="toggleReplyForm({{ $item->id }})" class="rounded-xl border border-gray-700 px-4 py-2 text-xs font-bold text-gray-400 hover:bg-gray-800 hover:text-white transition">Hủy</button>
-                                                <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2 text-xs font-bold text-white shadow-lg shadow-red-900/20 hover:bg-red-700 transition">
+                                                <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-red-900/20 hover:bg-red-700 transition">
                                                     <i class="fa-solid fa-paper-plane"></i> Gửi Email
                                                 </button>
                                             </div>
@@ -466,8 +466,6 @@
                 </a>
             </div>
 
-<<<<<<< HEAD
-=======
             <div class="grid gap-4">
                 @forelse(($posts ?? collect()) as $post)
                     <article class="rounded-[2rem] border border-gray-800 bg-gray-900/80 p-5 shadow-lg shadow-black/10 transition hover:border-gray-700">
@@ -489,7 +487,6 @@
             </div>
         </div>
 
->>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783
     @elseif ($activeTab === 'actions')
         @php
             $vouchers = $vouchers ?? collect();
@@ -955,7 +952,6 @@
         </div>
     @endif
 @endsection
-<<<<<<< HEAD
 
 @section('scripts')
 <style>
@@ -1011,5 +1007,3 @@
 }
 </style>
 @endsection
-=======
->>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783

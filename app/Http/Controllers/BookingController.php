@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Mail\BookingTicketMail;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -177,6 +176,7 @@ class BookingController extends Controller
                 $voucher = $this->resolveVoucher($data['voucher_code'] ?? null);
                 $discountAmount = $voucher ? $this->calculateDiscount($voucher, $baseTotal) : 0;
                 $finalPrice = max($baseTotal - $discountAmount, 0);
+                $referenceCode = 'PAY-'.now()->format('YmdHis').'-'.rand(1000, 9999);
 
                 $ticketId = DB::table('tickets')->insertGetId([
                     'user_id' => $request->user()->id,
@@ -186,9 +186,10 @@ class BookingController extends Controller
                     'phone' => $data['phone'],
                     'booking_date' => now(),
                     'total_price' => $baseTotal,
-                    'voucher_id' => $voucher?->id,
                     'discount_amount' => $discountAmount,
                     'final_price' => $finalPrice,
+                    'voucher_code' => $voucher?->code,
+                    'reference_code' => $referenceCode,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -223,7 +224,6 @@ class BookingController extends Controller
                         ]);
                 }
 
-<<<<<<< HEAD
                 return [
                     'ticket_id' => $ticketId,
                     'voucher_code' => $voucher?->code,
@@ -234,7 +234,7 @@ class BookingController extends Controller
                     'payment_method' => $data['payment_method'],
                     'email' => $data['email'],
                     'phone' => $data['phone'],
-                    'reference_code' => 'PAY-'.now()->format('YmdHis').'-'.$ticketId,
+                    'reference_code' => $referenceCode,
                 ];
             });
 
@@ -258,6 +258,13 @@ class BookingController extends Controller
                     'seat_names' => $result['seat_names'],
                 ],
             ]);
+
+            if ($data['payment_method'] === 'vnpay') {
+                $paymentUrl = $this->createVnpayUrl($result['final_price'], $result['ticket_id']);
+                return response()->json(['payment_url' => $paymentUrl]);
+            }
+
+            $this->sendTicketConfirmationEmail($result['ticket_id'], $data['payment_method']);
 
             return response()->json([
                 'message' => 'Thanh toán thành công. Vé đã được lưu vào tài khoản của bạn.',
@@ -317,21 +324,6 @@ class BookingController extends Controller
                 'message' => 'Thanh toán chưa hoàn tất. Vui lòng thử lại.',
             ], 500);
         }
-=======
-        if ($data['payment_method'] === 'vnpay') {
-            $paymentUrl = $this->createVnpayUrl($result['final_price'], $result['ticket_id']);
-
-            return response()->json(['payment_url' => $paymentUrl]);
-        }
-
-        $this->sendTicketConfirmationEmail($result['ticket_id'], $data['payment_method']);
-
-        return response()->json([
-            'message' => 'Thanh toán thành công. Vé đã được lưu vào tài khoản của bạn.',
-            'redirect_url' => route('account.index', ['tab' => 'tickets']),
-            'ticket' => $result,
-        ]);
->>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783
     }
 
     protected function loadAvailableVouchers(): Collection
@@ -429,7 +421,6 @@ class BookingController extends Controller
             ->values();
     }
 
-<<<<<<< HEAD
     private function recordPaymentLog(array $payload): void
     {
         try {
@@ -455,7 +446,11 @@ class BookingController extends Controller
             ]);
         } catch (\Throwable $exception) {
             Log::warning('Failed to persist payment log.', [
-=======
+                'message' => $exception->getMessage(),
+            ]);
+        }
+    }
+
     private function createVnpayUrl(int $amount, int $ticketId): string
     {
         $vnpUrl = env('VNP_URL');
@@ -528,13 +523,10 @@ class BookingController extends Controller
             Log::error('Không thể gửi email vé xem phim.', [
                 'ticket_id' => $ticketId,
                 'email' => $ticket->email,
->>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783
                 'message' => $exception->getMessage(),
             ]);
         }
     }
-<<<<<<< HEAD
-=======
 
     protected function buildTicketMailData(int $ticketId, string $paymentMethod): ?object
     {
@@ -596,5 +588,4 @@ class BookingController extends Controller
 
         return $ticket;
     }
->>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783
 }
