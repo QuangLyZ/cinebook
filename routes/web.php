@@ -54,6 +54,7 @@ Route::get('/cinemas/{id}', [CinemaController::class, 'show'])->name('cinemas.sh
 // Booking
 Route::get('/booking/{id}', [BookingController::class, 'show'])->name('booking.show');
 Route::post('/booking/{id}/checkout', [BookingController::class, 'checkout'])->name('booking.checkout');
+Route::get('/vnpay-return', [BookingController::class, 'vnpayReturn'])->name('vnpay.return');
 
 // Feedback
 Route::get('/feedback', function () {
@@ -154,6 +155,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('cinemas', App\Http\Controllers\Admin\CinemaController::class);
     Route::resource('showtimes', App\Http\Controllers\Admin\ShowtimeController::class);
     Route::resource('tickets', App\Http\Controllers\Admin\TicketController::class);
+    Route::get('/tickets-export', [App\Http\Controllers\Admin\TicketController::class, 'exportCsv'])->name('tickets.export');
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);
     Route::resource('posts', App\Http\Controllers\Admin\PostController::class);
 });

@@ -5,51 +5,51 @@
 
 @section('content')
 <div class="space-y-6 animate-[fadeIn_0.5s_ease-in-out]">
-    <div>
-<h2 class="text-2xl font-extrabold text-white ">
-    Danh sách Bài Viết
-</h2>
-
-<p class="mt-1 text-sm text-gray-400 ">
-    Xem và quản lý các bài viết đã được đăng lên hệ thống.
-</p>
-      
+    <div class="flex items-center gap-4">
+        <a href="{{ route('admin.management') }}" class="text-white transition hover:text-gray-300">
+            <i class="fa-solid fa-chevron-left text-2xl"></i>
+        </a>
+        <div>
+            <h2 class="text-2xl font-extrabold tracking-tight text-white">Danh sách Bài Viết</h2>
+            <p class="mt-1 text-sm text-gray-400">Xem và quản lý các bài viết đã được đăng lên hệ thống.</p>
+        </div>
     </div>
 
     <div class="overflow-hidden rounded-3xl border border-gray-800 bg-gray-900/70 shadow-xl">
         <div class="overflow-x-auto">
-            <table class="w-full table-fixed text-left text-sm whitespace-nowrap">
-                <thead class="border-b border-gray-800 bg-gray-950/50 uppercase text-gray-400 ">
+            <table class="w-full table-fixed whitespace-nowrap text-left text-sm">
+                <thead class="border-b border-gray-800 bg-gray-950/50 uppercase text-gray-400">
                     <tr>
-                        <th class="px-6 py-4 w-1/3 text-center">Bài viết</th>
-                        <th class="px-6 py-4 w-1/3 text-center">Trạng thái</th>
-                        <th class="px-6 py-4 w-1/3 text-center">Ngày đăng</th>
+                        <th class="w-[40%] px-6 py-4 text-center">Bài viết</th>
+                        <th class="w-[25%] px-6 py-4 text-center">Tác giả</th>
+                        <th class="w-[20%] px-6 py-4 text-center">Trạng thái</th>
+                        <th class="w-[15%] px-6 py-4 text-center">Ngày đăng</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-800">
                     @forelse ($posts as $post)
                         <tr class="transition-colors hover:bg-gray-800/50">
-                            <td class="px-6 py-4 max-w-xs">
-                                <div class="font-bold text-white truncate">{{ $post->title }}</div>
-                                <div class="mt-1 text-xs text-gray-500 line-clamp-1">{{ Str::limit($post->context ?? '', 80) }}</div>
+                            <td class="max-w-xs px-6 py-4">
+                                <div class="truncate font-bold text-white">{{ $post->title }}</div>
+                                <div class="mt-1 line-clamp-1 text-xs text-gray-500">{{ \Illuminate\Support\Str::limit($post->context ?? '', 80) }}</div>
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex flex-col items-center">
                                     <span class="font-semibold text-gray-200">{{ $post->author_name }}</span>
-                                    <span class="text-xs text-gray-500 mt-0.5">{{ $post->author_email }}</span>
+                                    <span class="mt-0.5 text-xs text-gray-500">{{ $post->author_email }}</span>
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-center">
                                 @php
                                     $statusColors = [
                                         'published' => 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-                                        'draft'     => 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-                                        'archived'  => 'bg-gray-500/10 text-gray-400 border-gray-500/20',
+                                        'draft' => 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+                                        'archived' => 'bg-gray-500/10 text-gray-400 border-gray-500/20',
                                     ];
                                     $statusLabels = [
                                         'published' => 'Đã đăng',
-                                        'draft'     => 'Bản nháp',
-                                        'archived'  => 'Lưu trữ',
+                                        'draft' => 'Bản nháp',
+                                        'archived' => 'Lưu trữ',
                                     ];
                                     $statusKey = $post->status ?? 'published';
                                     $colorClass = $statusColors[$statusKey] ?? $statusColors['published'];
@@ -60,7 +60,7 @@
                                     {{ $statusLabel }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 text-center text-gray-400 text-xs">
+                            <td class="px-6 py-4 text-center text-xs text-gray-400">
                                 {{ \Carbon\Carbon::parse($post->created_at)->format('d/m/Y H:i') }}
                             </td>
                         </tr>
@@ -68,7 +68,7 @@
                         <tr>
                             <td colspan="4" class="px-6 py-12 text-center text-gray-500">
                                 <div class="flex flex-col items-center">
-                                    <i class="fa-solid fa-newspaper text-4xl mb-3 text-gray-700"></i>
+                                    <i class="fa-solid fa-newspaper mb-3 text-4xl text-gray-700"></i>
                                     <p>Chưa có bài viết nào được đăng.</p>
                                 </div>
                             </td>
@@ -77,113 +77,102 @@
                 </tbody>
             </table>
         </div>
+
         @if (method_exists($posts, 'hasPages') && $posts->hasPages())
             <div class="border-t border-gray-800 px-6 py-4">
                 {{ $posts->links() }}
             </div>
         @endif
     </div>
-</div>
-<form action="{{ route('admin.posts.store') }}" method="POST">
+
+    <form action="{{ route('admin.posts.store') }}" method="POST" class="space-y-6">
         @csrf
-    <div>
-        <h1 class=" text-center justify-between block text-gray-300 my-7 font-bold text-2xl">TẠO BÀI VIẾT MỚI</h1>
-    </div>
-    <div class="max-w-4xl mx-auto bg-gray-900/60 backdrop-blur-xl 
-                border border-gray-800 rounded-2xl p-6 space-y-6 shadow-xl">
 
-        <!-- Title -->
         <div>
-            <strong class="text-center block text-gray-400 mb-4">TIÊU ĐỀ</strong>
-            <input type="text" name="title" placeholder="Nhập tiêu đề..."
-                class="w-full p-3 rounded-xl bg-gray-950 text-white 
-                       border border-gray-700 focus:border-red-500 
-                       focus:ring-1 focus:ring-red-500 outline-none transition">
+            <h3 class="my-7 block text-center text-2xl font-bold text-gray-300">TẠO BÀI VIẾT MỚI</h3>
         </div>
 
-        <!-- Keywords -->
-        <div>
-            <strong class=" text-center block text-gray-400 mb-4">KEYWORDS</strong>
-            <input type="text" name="keywords" placeholder="vd: phim hay, cinema..."
-                class="w-full p-3 rounded-xl bg-gray-950 text-white 
-                       border border-gray-700 focus:border-pink-500 
-                       focus:ring-1 focus:ring-pink-500 outline-none transition">
+        <div class="mx-auto max-w-4xl space-y-6 rounded-2xl border border-gray-800 bg-gray-900/60 p-6 shadow-xl backdrop-blur-xl">
+            <div>
+                <strong class="mb-4 block text-center text-gray-400">TIÊU ĐỀ</strong>
+                <input
+                    type="text"
+                    name="title"
+                    placeholder="Nhập tiêu đề..."
+                    class="w-full rounded-xl border border-gray-700 bg-gray-950 p-3 text-white outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                >
+            </div>
+
+            <div>
+                <strong class="mb-4 block text-center text-gray-400">KEYWORDS</strong>
+                <input
+                    type="text"
+                    name="keywords"
+                    placeholder="vd: phim hay, cinema..."
+                    class="w-full rounded-xl border border-gray-700 bg-gray-950 p-3 text-white outline-none transition focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
+                >
+            </div>
+
+            <div>
+                <strong class="mb-4 block text-center text-gray-400">THỜI GIAN ĐĂNG</strong>
+                <input
+                    type="text"
+                    id="publish_at"
+                    name="publish_at"
+                    placeholder="Chọn ngày giờ đăng..."
+                    value="{{ old('publish_at') }}"
+                    class="mt-1 w-full rounded-xl border border-gray-700 bg-gray-950 p-3 text-white outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                >
+            </div>
+
+            <div>
+                <strong class="mb-4 block text-center text-gray-400">NỘI DUNG BÀI VIẾT</strong>
+                <textarea id="editor" class="ckeditor" name="content"></textarea>
+                <style>
+                    .ck-editor__editable { min-height: 200px; background: #111827 !important; color: #ffffff !important; }
+                </style>
+            </div>
+
+            <div class="flex items-center justify-between text-center">
+                <button class="rounded-xl bg-gradient-to-r from-pink-500 to-red-500 px-6 py-3 font-semibold text-white shadow-lg transition hover:opacity-90">
+                    Đăng bài
+                </button>
+
+                @if(session('success'))
+                    <p class="text-green-400">
+                        {{ session('success') }}
+                    </p>
+                @endif
+            </div>
         </div>
+    </form>
 
-        <!-- Publish time -->
-        <div>
-            <strong class=" text-center block text-gray-400 mb-4">THỜI GIAN ĐĂNG</strong>
-
-    <input type="text" id="publish_at" name="publish_at"
-        placeholder="Chọn ngày giờ đăng..."
-        value="{{ old('publish_at') }}"
-        style="
-            width:100%;
-            padding:12px;
-            border-radius:12px;
-            border:1px solid #374151;
-            background:#020617;
-            color:white;
-            margin-top:5px;
-        ">
-        </div>
-
-        <!-- Content -->
-        <div>
-            <strong class=" text-center block text-gray-400 mb-4">NỘI DUNG BÀI VIẾT</strong>
-           <textarea id="editor" class="ckeditor" name="content"></textarea>
-            <style> .ck-editor__editable { min-height: 200px; background: #111827 !important; color: #ffffff !important; } </style>
-        </div>
-
-        <!-- Button -->
-        <div class="text-center flex items-center justify-between">
-            <button 
-                class="bg-red-600 px-6 py-3 rounded-xl text-white font-semibold
-                       bg-gradient-to-r from-pink-500 to-red-500 
-                       hover:opacity-90 transition shadow-lg">
-                Đăng bài
-            </button>
-
-            @if(session('success'))
-                <p class="text-green-400">
-                    {{ session('success') }}
-                </p>
-            @endif
-        </div>
-    </div>
-</form>
-
-    <!-- LIST -->
     <div class="space-y-4">
         @foreach($posts ?? [] as $post)
-            <div class="p-4 bg-gray-800 rounded">
+            <div class="rounded bg-gray-800 p-4">
                 <h3 class="text-xl text-white">{{ $post->title }}</h3>
-                <p class="text-gray-400 text-sm">{{ $post->keywords }}</p>
-                <p class="text-gray-500 text-xs">
+                <p class="text-sm text-gray-400">{{ $post->keywords }}</p>
+                <p class="text-xs text-gray-500">
                     {{ $post->publish_at ?? 'Đăng ngay' }}
                 </p>
             </div>
-
         @endforeach
     </div>
-
-</div>
 </div>
 @endsection
+
 @section('scripts')
 <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
 
 <script>
 let editorInstance = null;
 
-document.addEventListener("DOMContentLoaded", function () {
-
+document.addEventListener('DOMContentLoaded', function () {
     const el = document.querySelector('#editor');
 
-    if (!el) return;
-
-    // ❗ nếu đã có rồi thì không tạo lại
-    if (editorInstance) return;
+    if (!el || editorInstance) {
+        return;
+    }
 
     ClassicEditor
         .create(el, {
@@ -193,7 +182,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .then(editor => {
             editorInstance = editor;
-            console.log("✅ CKEditor READY");
+            console.log('CKEditor READY');
         })
         .catch(error => {
             console.error(error);
