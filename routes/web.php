@@ -13,11 +13,10 @@ use App\Models\Feedback;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\Admin\DashboardController;
 
 Route::post('/upload-image', [App\Http\Controllers\PostController::class, 'uploadImage'])
     ->name('upload.image');
-Route::get('/admin/posts', [PostController::class, 'index'])->name('admin.posts');
-Route::post('/admin/posts', [PostController::class, 'store'])->name('admin.posts.store');
 Route::get('/sendEmail', [SendEmailController::class, 'send'])->name('sendEmail');
 
 // Trang chủ
@@ -93,13 +92,7 @@ $adminTabs = [
 ];
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () use ($adminTabs) {
-    Route::get('/', function () use ($adminTabs) {
-        return view('admin.home', [
-            'activeTab' => 'dashboard',
-            'pageTitle' => $adminTabs['dashboard'],
-            'adminTabs' => $adminTabs,
-        ]);
-    })->name('dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/management', function () use ($adminTabs) {
         return view('admin.home', [
@@ -109,18 +102,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         ]);
     })->name('management');
 
-    Route::get('/posts', function () use ($adminTabs) {
-        return view('admin.home', [
-            'activeTab' => 'posts',
-            'pageTitle' => $adminTabs['posts'],
-            'adminTabs' => $adminTabs,
-        ]);
-    })->name('posts');
-
     Route::get('/actions', [VoucherController::class, 'index'])->name('actions');
     Route::post('/actions/vouchers', [VoucherController::class, 'store'])->name('vouchers.store');
     Route::put('/actions/vouchers/{voucher}', [VoucherController::class, 'update'])->name('vouchers.update');
     Route::delete('/actions/vouchers/{voucher}', [VoucherController::class, 'destroy'])->name('vouchers.destroy');
+    Route::post('/posts/upload-thumbnail', [App\Http\Controllers\Admin\PostController::class, 'uploadThumbnail'])->name('posts.upload-thumbnail');
 
     Route::get('/feedback', function () use ($adminTabs) {
         $feedbacks = \App\Models\Feedback::with('user')->latest()->get();

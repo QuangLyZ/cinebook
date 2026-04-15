@@ -119,151 +119,331 @@
 
     @elseif ($activeTab === 'dashboard')
         @php
-            $cards = [
-                ['label' => 'Người dùng hoạt động', 'value' => '1,284', 'delta' => '+12%', 'tone' => 'bg-sky-500/15 text-sky-300', 'icon' => 'fa-users'],
-                ['label' => 'Đặt vé hôm nay', 'value' => '356', 'delta' => '+8%', 'tone' => 'bg-red-500/15 text-red-300', 'icon' => 'fa-ticket'],
-                ['label' => 'Bài viết xuất bản', 'value' => '42', 'delta' => '+5 mới', 'tone' => 'bg-emerald-500/15 text-emerald-300', 'icon' => 'fa-newspaper'],
-                ['label' => 'Hành động chờ duyệt', 'value' => '17', 'delta' => 'Cần xử lý', 'tone' => 'bg-amber-500/15 text-amber-300', 'icon' => 'fa-bolt'],
-            ];
-
-            $quickActions = [
-                ['label' => 'Thêm phim mới', 'desc' => 'Tạo nội dung phim và nối lịch chiếu sau.', 'icon' => 'fa-film'],
-                ['label' => 'Tạo bài viết', 'desc' => 'Soạn tin tức, ưu đãi hoặc thông báo chiến dịch.', 'icon' => 'fa-pen-nib'],
-                ['label' => 'Quản lý rạp', 'desc' => 'Cập nhật rạp, phòng chiếu, ghế và sơ đồ.', 'icon' => 'fa-building'],
-                ['label' => 'Ý kiến phản hồi', 'desc' => 'Xem và phản hồi các góp ý từ khách hàng.', 'icon' => 'fa-comments'],
-            ];
-
-            $activity = [
-                ['title' => 'Lịch chiếu cuối tuần đã được đồng bộ', 'time' => '10 phút trước', 'tag' => 'Scheduler'],
-                ['title' => 'Bài viết ưu đãi tháng 4 được đẩy lên bản nháp', 'time' => '32 phút trước', 'tag' => 'Content'],
-                ['title' => 'Rạp CineBook Landmark cập nhật 2 phòng chiếu mới', 'time' => '1 giờ trước', 'tag' => 'Cinema'],
-                ['title' => 'Hệ thống vừa ghi nhận 87 giao dịch thành công', 'time' => '2 giờ trước', 'tag' => 'Orders'],
-            ];
+            $filter = $dashboardFilter ?? 'day';
+            $deltaTone = fn ($tone) => match ($tone) {
+                'up' => 'text-emerald-400',
+                'down' => 'text-red-400',
+                default => 'text-gray-400',
+            };
+            $deltaIcon = fn ($tone) => match ($tone) {
+                'up' => 'fa-caret-up',
+                'down' => 'fa-caret-down',
+                default => 'fa-minus',
+            };
         @endphp
 
-        <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px] animate-[fadeIn_0.5s_ease-in-out]">
-            <div class="space-y-6">
-                <div class="overflow-hidden rounded-[2rem] border border-gray-800 bg-gradient-to-br from-gray-900 via-gray-900 to-black shadow-2xl shadow-black/30">
-                    <div class="grid gap-8 px-6 py-8 md:grid-cols-[1.2fr_0.8fr] md:px-8 md:py-10">
-                        <div>
-                            <div class="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-red-300">
-                                <i class="fa-solid fa-clapperboard"></i>
-                                Admin Workspace
+        <section class="space-y-6 animate-[fadeIn_0.5s_ease-in-out]">
+            <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                <div>
+                    <div class="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">Cinema Intelligence</div>
+                    <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-white">Dashboard điều hành cụm rạp</h2>
+                    <p class="mt-2 text-sm leading-6 text-gray-400">
+                        Tổng hợp số liệu theo {{ strtolower($dashboardFilterLabel ?? 'ngày') }} cho giai đoạn {{ $dashboardWindowLabel ?? '' }}.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    @foreach (['day' => 'Ngày', 'week' => 'Tuần', 'month' => 'Tháng'] as $rangeKey => $rangeLabel)
+                        <a
+                            href="{{ route('admin.dashboard', ['range' => $rangeKey]) }}"
+                            class="{{ $filter === $rangeKey ? 'border-red-500 bg-red-600 text-white shadow-lg shadow-red-950/30' : 'border-gray-800 bg-gray-900/80 text-gray-300 hover:border-gray-700 hover:text-white' }} inline-flex items-center rounded-2xl border px-4 py-2.5 text-sm font-semibold transition"
+                        >
+                            {{ $rangeLabel }}
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                @foreach (($summaryMetrics ?? []) as $metric)
+                    <article class="rounded-[1.75rem] border border-gray-800 bg-gray-900/80 p-5 shadow-lg shadow-black/10">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <div class="text-xs font-semibold uppercase tracking-[0.22em] text-gray-500">{{ $metric['label'] }}</div>
+                                <div class="mt-4 text-3xl font-extrabold text-white">{{ $metric['value'] }}</div>
                             </div>
-                            <h2 class="mt-5 max-w-2xl text-3xl font-extrabold tracking-tight text-white md:text-4xl">
-                                Khu điều hành CineBook cho đội admin, cùng hệ màu và cảm giác với giao diện user.   
-                            </h2>
-                            <p class="mt-4 max-w-2xl text-sm leading-7 text-gray-400 md:text-base">
-                                Khung này ưu tiên tính phân tầng rõ ràng: sidebar cho điều hướng chính, topbar cho thao tác nhanh, nội dung giữa để team bạn tiếp tục gắn dashboard, bảng quản lý và form CRUD.
-                            </p>
-                            <div class="mt-6 flex flex-wrap gap-3">
-                                <a href="{{ route('admin.management') }}" class="inline-flex items-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-red-950/30 transition hover:bg-red-700">
-                                    <i class="fa-solid fa-arrow-right"></i>
-                                    Đi tới khu quản lý
-                                </a>
-                                <a href="{{ route('admin.feedback') }}" class="inline-flex items-center gap-2 rounded-2xl border border-gray-700 bg-gray-900 px-5 py-3 text-sm font-semibold text-gray-200 transition hover:border-red-500/40 hover:text-white">
-                                    <i class="fa-solid fa-comments"></i>
-                                    Xem phản hồi
-                                </a>
+                            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 text-red-300">
+                                <i class="fa-solid {{ $metric['icon'] }}"></i>
                             </div>
                         </div>
+                        <div class="mt-4 inline-flex items-center gap-2 text-sm font-semibold {{ $deltaTone($metric['delta']['tone']) }}">
+                            <i class="fa-solid {{ $deltaIcon($metric['delta']['tone']) }}"></i>
+                            <span>{{ $metric['delta']['text'] }}</span>
+                            <span class="text-gray-500">so với cùng kỳ</span>
+                        </div>
+                    </article>
+                @endforeach
+            </div>
 
-                        <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-1">
-                            @foreach ($cards as $card)
-                                <div class="rounded-3xl border border-gray-800 bg-gray-900/70 p-5 backdrop-blur transition hover:bg-gray-900">   
-                                    <div class="flex items-start justify-between gap-4">
-                                        <div>
-                                            <div class="text-sm text-gray-400">{{ $card['label'] }}</div>
-                                            <div class="mt-3 text-3xl font-extrabold text-white">{{ $card['value'] }}</div>
+            <div class="grid gap-6">
+                <div class="rounded-[2rem] border border-gray-800 bg-gray-900/80 p-6 shadow-lg shadow-black/10">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <div class="text-xs font-semibold uppercase tracking-[0.22em] text-gray-500">Chi tiết</div>
+                            <h3 class="mt-2 text-2xl font-extrabold tracking-tight text-white">Doanh thu theo {{ strtolower($dashboardFilterLabel ?? 'ngày') }}</h3>
+                        </div>
+                        <div class="text-sm text-gray-500">{{ $dashboardWindowLabel ?? '' }}</div>
+                    </div>
+
+                    <div class="mt-8">
+                        <div class="dashboard-chart-scroll overflow-x-auto pb-[clamp(0.75rem,1.5vw,1rem)]">
+                            <div class="dashboard-chart-track flex min-w-full items-end gap-[clamp(0.35rem,0.9vw,0.75rem)]">
+                                @foreach (($detailMetrics['revenue_chart'] ?? collect()) as $point)
+                                    <div class="dashboard-chart-bar flex min-w-[clamp(3.5rem,8%,5.5rem)] flex-1 shrink-0 basis-[8%] flex-col items-center gap-[clamp(0.4rem,1vw,0.75rem)]">
+                                        <div class="max-w-full text-center text-[clamp(0.6rem,1.2vw,0.78rem)] leading-[1.35] text-gray-500">{{ $point->value }}</div>
+                                        <div class="flex h-[clamp(12rem,32vw,18rem)] w-[92%] items-end rounded-[clamp(1rem,2vw,1.5rem)] bg-gray-950/50 px-[clamp(0.18rem,0.6vw,0.4rem)]">
+                                            <div class="w-full rounded-t-[clamp(0.85rem,1.8vw,1.35rem)] bg-gradient-to-t from-red-600 via-red-500 to-amber-400" style="height: {{ $point->height }}%"></div>
                                         </div>
-                                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl {{ $card['tone'] }}">
-                                            <i class="fa-solid {{ $card['icon'] }}"></i>
-                                        </div>
+                                        <div class="w-full text-center text-[clamp(0.68rem,1.3vw,0.85rem)] font-semibold text-gray-400">{{ $point->label }}</div>
                                     </div>
-                                    <div class="mt-4 text-sm font-semibold text-gray-300">{{ $card['delta'] }}</div>
-                                </div>
-                            @endforeach
+                                @endforeach
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid gap-6 lg:grid-cols-2">
+                <div class="grid gap-6 xl:grid-cols-2">
                     <div class="rounded-[2rem] border border-gray-800 bg-gray-900/80 p-6 shadow-lg shadow-black/10">
-                        <div class="flex items-center justify-between gap-3">
-                            <div>
-                                <div class="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">Quick Actions</div>
-                                <h3 class="mt-2 text-2xl font-extrabold tracking-tight text-white">Lối tắt thao tác</h3>
-                            </div>
-                            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 text-red-300">
-                                <i class="fa-solid fa-bolt"></i>
-                            </div>
-                        </div>
-                        <div class="mt-6 grid gap-4">
-                            @foreach ($quickActions as $item)
-                                <div class="rounded-3xl border border-gray-800 bg-gray-950/80 p-4 transition hover:border-red-500/30 hover:bg-gray-900 cursor-pointer">
-                                    <div class="flex items-start gap-4">
-                                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white shadow-lg shadow-red-900/20">
-                                            <i class="fa-solid {{ $item['icon'] }}"></i>
+                        <div class="text-xs font-semibold uppercase tracking-[0.22em] text-gray-500">Top phim</div>
+                        <h3 class="mt-2 text-2xl font-extrabold tracking-tight text-white">Được xem nhiều nhất</h3>
+                        <div class="mt-6 space-y-4">
+                            @forelse (($detailMetrics['top_movies'] ?? collect()) as $item)
+                                <div>
+                                    <div class="mb-2 flex items-center justify-between gap-3">
+                                        <div class="flex items-center gap-3">
+                                            <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-gray-950 text-xs font-bold text-red-300">{{ $item->rank }}</span>
+                                            <span class="font-semibold text-white">{{ $item->label }}</span>
                                         </div>
-                                        <div>
-                                            <div class="font-bold text-white">{{ $item['label'] }}</div>
-                                            <div class="mt-1 text-sm leading-6 text-gray-400">{{ $item['desc'] }}</div>
-                                        </div>
+                                        <span class="text-sm text-gray-400">{{ $item->value }}</span>
+                                    </div>
+                                    <div class="h-2.5 rounded-full bg-gray-950">
+                                        <div class="h-2.5 rounded-full bg-gradient-to-r from-red-500 to-amber-400" style="width: {{ $item->width }}%"></div>
                                     </div>
                                 </div>
-                            @endforeach
+                            @empty
+                                <div class="text-sm text-gray-500">Chưa có dữ liệu vé trong kỳ này.</div>
+                            @endforelse
                         </div>
                     </div>
 
                     <div class="rounded-[2rem] border border-gray-800 bg-gray-900/80 p-6 shadow-lg shadow-black/10">
-                        <div class="flex items-center justify-between gap-3">
-                            <div>
-                                <div class="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">Module Status</div>
-                                <h3 class="mt-2 text-2xl font-extrabold tracking-tight text-white">Tiến độ chia tab</h3>
-                            </div>
-                            <div class="rounded-2xl bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-300">Ready for team</div>
-                        </div>
-
+                        <div class="text-xs font-semibold uppercase tracking-[0.22em] text-gray-500">Top rạp</div>
+                        <h3 class="mt-2 text-2xl font-extrabold tracking-tight text-white">Đông khách nhất</h3>
                         <div class="mt-6 space-y-4">
-                            @foreach ($adminTabs as $key => $label)
-                                <div class="rounded-3xl border {{ $activeTab === $key ? 'border-red-500/40 bg-red-500/10' : 'border-gray-800 bg-gray-950/70' }} p-4">
-                                    <div class="flex items-center justify-between gap-3">
-                                        <div>
-                                            <div class="font-bold text-white">{{ $label }}</div>
-                                            <div class="mt-1 text-sm text-gray-400">
-                                                {{ $activeTab === $key ? 'Tab đang được focus để thiết kế và test giao diện.' : 'Sẵn khung điều hướng, chờ team gắn chức năng chi tiết.' }}
-                                            </div>
+                            @forelse (($detailMetrics['top_cinemas'] ?? collect()) as $item)
+                                <div>
+                                    <div class="mb-2 flex items-center justify-between gap-3">
+                                        <div class="flex items-center gap-3">
+                                            <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-gray-950 text-xs font-bold text-sky-300">{{ $item->rank }}</span>
+                                            <span class="font-semibold text-white">{{ $item->label }}</span>
                                         </div>
-                                        <span class="rounded-full {{ $activeTab === $key ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-300' }} px-3 py-1 text-xs font-bold uppercase tracking-[0.2em]">
-                                            {{ $activeTab === $key ? 'Active' : 'Queued' }}
-                                        </span>
+                                        <span class="text-sm text-gray-400">{{ $item->value }}</span>
+                                    </div>
+                                    <div class="h-2.5 rounded-full bg-gray-950">
+                                        <div class="h-2.5 rounded-full bg-gradient-to-r from-sky-500 to-cyan-300" style="width: {{ $item->width }}%"></div>
                                     </div>
                                 </div>
-                            @endforeach
+                            @empty
+                                <div class="text-sm text-gray-500">Chưa có dữ liệu vé trong kỳ này.</div>
+                            @endforelse
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="space-y-6">
-                <div class="rounded-[2rem] border border-gray-800 bg-gray-900/80 p-6 shadow-lg shadow-black/10">    
-                    <div class="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">Recent Activity</div>
-                    <h3 class="mt-2 text-2xl font-extrabold tracking-tight text-white">Hoạt động gần đây</h3>       
+            <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+                <div class="rounded-[2rem] border border-gray-800 bg-gray-900/80 p-6 shadow-lg shadow-black/10">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <div class="text-xs font-semibold uppercase tracking-[0.22em] text-gray-500">Hoạt động</div>
+                            <h3 class="mt-2 text-2xl font-extrabold tracking-tight text-white">Suất đang chiếu và tỷ lệ fill</h3>
+                        </div>
+                        <div class="text-sm text-gray-500">{{ ($liveShowtimes ?? collect())->count() }} suất</div>
+                    </div>
                     <div class="mt-6 space-y-4">
-                        @foreach ($activity as $item)
-                            <div class="relative rounded-3xl border border-gray-800 bg-gray-950/70 p-4 pl-6 transition hover:border-gray-700">       
-                                <div class="absolute left-0 top-6 h-10 w-1 rounded-r-full bg-red-600"></div>        
-                                <div class="flex items-start justify-between gap-4">
+                        @forelse (($liveShowtimes ?? collect()) as $showtime)
+                            <article class="rounded-[1.5rem] border border-gray-800 bg-gray-950/70 p-4">
+                                <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                     <div>
-                                        <div class="font-semibold text-white">{{ $item['title'] }}</div>
-                                        <div class="mt-2 text-sm text-gray-500">{{ $item['time'] }}</div>
+                                        <div class="text-lg font-bold text-white">{{ $showtime->movie_name }}</div>
+                                        <div class="mt-1 text-sm text-gray-400">{{ $showtime->cinema_name }} • {{ $showtime->room_name }}</div>
+                                        <div class="mt-2 text-xs uppercase tracking-[0.18em] text-gray-500">
+                                            {{ $showtime->start_time->format('H:i') }} - {{ $showtime->end_time->format('H:i') }}
+                                        </div>
                                     </div>
-                                    <span class="rounded-full bg-gray-800 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-gray-300">
-                                        {{ $item['tag'] }}
-                                    </span>
+                                    <div class="min-w-[220px]">
+                                        <div class="mb-2 flex items-center justify-between text-sm">
+                                            <span class="text-gray-400">{{ $showtime->sold_seats }}/{{ $showtime->seat_count }} ghế</span>
+                                            <span class="font-bold text-white">{{ number_format($showtime->fill_rate, 1) }}%</span>
+                                        </div>
+                                        <div class="h-3 rounded-full bg-black/40">
+                                            <div class="h-3 rounded-full bg-gradient-to-r from-emerald-500 via-yellow-400 to-red-500" style="width: {{ min($showtime->fill_rate, 100) }}%"></div>
+                                        </div>
+                                    </div>
                                 </div>
+                            </article>
+                        @empty
+                            <div class="rounded-[1.5rem] border border-dashed border-gray-800 bg-gray-950/40 p-10 text-center text-gray-500">
+                                Hiện chưa có suất nào đang chiếu ở thời điểm này.
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+
+                <div class="rounded-[2rem] border border-gray-800 bg-gray-900/80 p-6 shadow-lg shadow-black/10">
+                    <div class="text-xs font-semibold uppercase tracking-[0.22em] text-gray-500">Quick Action</div>
+                    <h3 class="mt-2 text-2xl font-extrabold tracking-tight text-white">Lối tắt thao tác</h3>
+                    <div class="mt-6 grid gap-4">
+                        @foreach (($quickActions ?? []) as $action)
+                            @if ($action['href'])
+                                <a href="{{ $action['href'] }}" class="rounded-[1.5rem] border border-gray-800 bg-gray-950/80 p-4 transition hover:border-red-500/30 hover:bg-gray-900">
+                                    <div class="flex items-start gap-4">
+                                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white">
+                                            <i class="fa-solid {{ $action['icon'] }}"></i>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-white">{{ $action['label'] }}</div>
+                                            <div class="mt-1 text-sm leading-6 text-gray-400">{{ $action['description'] }}</div>
+                                        </div>
+                                    </div>
+                                </a>
+                            @else
+                                <div class="rounded-[1.5rem] border border-gray-800 bg-gray-950/60 p-4 opacity-80">
+                                    <div class="flex items-start gap-4">
+                                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-800 text-gray-300">
+                                            <i class="fa-solid {{ $action['icon'] }}"></i>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-white">{{ $action['label'] }}</div>
+                                            <div class="mt-1 text-sm leading-6 text-gray-400">{{ $action['description'] }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid gap-6 xl:grid-cols-3">
+                <div class="rounded-[2rem] border border-gray-800 bg-gray-900/80 p-6 shadow-lg shadow-black/10 xl:col-span-1">
+                    <div class="text-xs font-semibold uppercase tracking-[0.22em] text-gray-500">Khách hàng</div>
+                    <h3 class="mt-2 text-2xl font-extrabold tracking-tight text-white">Chỉ số khách hàng</h3>
+
+                    <div class="mt-6 space-y-5">
+                        <div class="rounded-[1.5rem] border border-gray-800 bg-gray-950/70 p-4">
+                            <div class="text-sm text-gray-400">{{ $customerMetrics['new_users']['label'] ?? '' }}</div>
+                            <div class="mt-3 text-3xl font-extrabold text-white">{{ $customerMetrics['new_users']['value'] ?? '0' }}</div>
+                            <div class="mt-3 inline-flex items-center gap-2 text-sm font-semibold {{ $deltaTone($customerMetrics['new_users']['delta']['tone'] ?? 'neutral') }}">
+                                <i class="fa-solid {{ $deltaIcon($customerMetrics['new_users']['delta']['tone'] ?? 'neutral') }}"></i>
+                                <span>{{ $customerMetrics['new_users']['delta']['text'] ?? '0%' }}</span>
+                            </div>
+                        </div>
+
+                        <div class="rounded-[1.5rem] border border-gray-800 bg-gray-950/70 p-4">
+                            <div class="text-sm text-gray-400">{{ $customerMetrics['turnover_rate']['label'] ?? '' }}</div>
+                            <div class="mt-3 text-3xl font-extrabold text-white">{{ $customerMetrics['turnover_rate']['value'] ?? '0%' }}</div>
+                            <div class="mt-2 text-sm text-gray-500">{{ $customerMetrics['turnover_rate']['subtext'] ?? '' }}</div>
+                            <div class="mt-3 inline-flex items-center gap-2 text-sm font-semibold {{ $deltaTone($customerMetrics['turnover_rate']['delta']['tone'] ?? 'neutral') }}">
+                                <i class="fa-solid {{ $deltaIcon($customerMetrics['turnover_rate']['delta']['tone'] ?? 'neutral') }}"></i>
+                                <span>{{ $customerMetrics['turnover_rate']['delta']['text'] ?? '0%' }}</span>
+                            </div>
+                        </div>
+
+                        <div class="rounded-[1.5rem] border border-gray-800 bg-gray-950/70 p-4">
+                            <div class="text-sm text-gray-400">{{ $customerMetrics['popular_booking_hour']['label'] ?? '' }}</div>
+                            <div class="mt-3 text-2xl font-extrabold text-white">{{ $customerMetrics['popular_booking_hour']['value'] ?? '--:--' }}</div>
+                            <div class="mt-2 text-sm text-gray-500">{{ $customerMetrics['popular_booking_hour']['subtext'] ?? '' }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-[2rem] border border-gray-800 bg-gray-900/80 p-6 shadow-lg shadow-black/10 xl:col-span-1">
+                    <div class="text-xs font-semibold uppercase tracking-[0.22em] text-gray-500">Khách hàng</div>
+                    <h3 class="mt-2 text-2xl font-extrabold tracking-tight text-white">Giờ đặt vé phổ biến</h3>
+                    <div class="mt-6 space-y-3">
+                        @foreach (($customerMetrics['hour_distribution'] ?? collect()) as $slot)
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 text-xs font-semibold text-gray-500">{{ $slot->label }}</div>
+                                <div class="h-2.5 flex-1 rounded-full bg-gray-950">
+                                    <div class="h-2.5 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-400" style="width: {{ $slot->width }}%"></div>
+                                </div>
+                                <div class="w-10 text-right text-xs text-gray-400">{{ $slot->total }}</div>
                             </div>
                         @endforeach
+                    </div>
+                </div>
+
+                <div class="rounded-[2rem] border border-gray-800 bg-gray-900/80 p-6 shadow-lg shadow-black/10 xl:col-span-1">
+                    <div class="text-xs font-semibold uppercase tracking-[0.22em] text-gray-500">Thanh toán</div>
+                    <h3 class="mt-2 text-2xl font-extrabold tracking-tight text-white">Hiệu suất thanh toán</h3>
+
+                    <div class="mt-6 grid gap-4">
+                        @foreach (['success', 'failed'] as $paymentKey)
+                            @php $payment = $paymentMetrics[$paymentKey] ?? null; @endphp
+                            @if ($payment)
+                                <div class="rounded-[1.5rem] border border-gray-800 bg-gray-950/70 p-4">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div>
+                                            <div class="text-sm text-gray-400">{{ $payment['label'] }}</div>
+                                            <div class="mt-3 text-3xl font-extrabold text-white">{{ $payment['value'] }}</div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="{{ $paymentKey === 'success' ? 'text-emerald-400' : 'text-red-400' }} text-xl font-bold">{{ number_format($payment['rate'], 1) }}%</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 inline-flex items-center gap-2 text-sm font-semibold {{ $deltaTone($payment['delta']['tone']) }}">
+                                        <i class="fa-solid {{ $deltaIcon($payment['delta']['tone']) }}"></i>
+                                        <span>{{ $payment['delta']['text'] }}</span>
+                                    </div>
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="rounded-[2rem] border border-gray-800 bg-gray-900/80 p-6 shadow-lg shadow-black/10">
+                <div class="flex items-center justify-between gap-4">
+                    <div>
+                        <div class="text-xs font-semibold uppercase tracking-[0.22em] text-gray-500">Promo</div>
+                        <h3 class="mt-2 text-2xl font-extrabold tracking-tight text-white">Hiệu quả voucher</h3>
+                    </div>
+                    <div class="text-sm text-gray-500">Theo {{ strtolower($dashboardFilterLabel ?? 'ngày') }}</div>
+                </div>
+
+                <div class="mt-6 overflow-hidden rounded-[1.5rem] border border-gray-800">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-800 text-sm">
+                            <thead class="bg-gray-950/80 text-left text-xs uppercase tracking-[0.22em] text-gray-500">
+                                <tr>
+                                    <th class="px-4 py-4">Mã voucher</th>
+                                    <th class="px-4 py-4">Số lần dùng</th>
+                                    <th class="px-4 py-4">Giảm giá đã áp</th>
+                                    <th class="px-4 py-4">Doanh thu mang về</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-800 bg-gray-950/40">
+                                @forelse (($promoMetrics ?? collect()) as $promo)
+                                    <tr class="align-top text-gray-300">
+                                        <td class="px-4 py-4">
+                                            <div class="font-semibold text-white">{{ $promo->code }}</div>
+                                            <div class="mt-2 h-2.5 rounded-full bg-black/40">
+                                                <div class="h-2.5 rounded-full bg-gradient-to-r from-amber-400 to-red-500" style="width: {{ $promo->usage_width }}%"></div>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-4">{{ number_format($promo->usages) }}</td>
+                                        <td class="px-4 py-4">{{ $promo->discount }}</td>
+                                        <td class="px-4 py-4 font-semibold text-white">{{ $promo->revenue }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="4" class="px-4 py-10 text-center text-gray-500">Chưa có voucher nào được sử dụng trong kỳ này.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -286,6 +466,8 @@
                 </a>
             </div>
 
+<<<<<<< HEAD
+=======
             <div class="grid gap-4">
                 @forelse(($posts ?? collect()) as $post)
                     <article class="rounded-[2rem] border border-gray-800 bg-gray-900/80 p-5 shadow-lg shadow-black/10 transition hover:border-gray-700">
@@ -307,6 +489,7 @@
             </div>
         </div>
 
+>>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783
     @elseif ($activeTab === 'actions')
         @php
             $vouchers = $vouchers ?? collect();
@@ -772,3 +955,61 @@
         </div>
     @endif
 @endsection
+<<<<<<< HEAD
+
+@section('scripts')
+<style>
+.dashboard-chart-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(239, 68, 68, 0.65) rgba(17, 24, 39, 0.85);
+}
+
+.dashboard-chart-track {
+    width: 100%;
+}
+
+.dashboard-chart-bar {
+    max-width: 10%;
+}
+
+.dashboard-chart-scroll::-webkit-scrollbar {
+    height: 10px;
+}
+
+.dashboard-chart-scroll::-webkit-scrollbar-track {
+    background: rgba(17, 24, 39, 0.85);
+    border-radius: 9999px;
+}
+
+.dashboard-chart-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.9), rgba(251, 191, 36, 0.9));
+    border-radius: 9999px;
+}
+
+.dashboard-chart-scroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(90deg, rgba(248, 113, 113, 0.95), rgba(252, 211, 77, 0.95));
+}
+
+@media (max-width: 1024px) {
+    .dashboard-chart-track {
+        width: max(100%, 120%);
+    }
+
+    .dashboard-chart-bar {
+        max-width: 12%;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-chart-track {
+        width: max(100%, 160%);
+    }
+
+    .dashboard-chart-bar {
+        max-width: 16%;
+    }
+}
+</style>
+@endsection
+=======
+>>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783

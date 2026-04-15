@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+<<<<<<< HEAD
+@php
+    $selectedDateCarbon = \Carbon\Carbon::parse($selectedDate ?? now()->toDateString());
+    $selectedCinemaName = $selectedCinema->name ?? 'Tất Cả Rạp';
+@endphp
+=======
 
 @php
 // Tạo mảng 5 ngày
@@ -18,6 +24,7 @@ $todayStr = date('Y-m-d');
 @endphp
 
 {{-- ===== HEADER ===== --}}
+>>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783
 <div class="bg-gray-900 border-b border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 class="text-3xl font-bold text-white mb-6">Đang Chiếu Tại Rạp</h1>
@@ -43,6 +50,12 @@ $todayStr = date('Y-m-d');
 </div>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    @if (!empty($dbWarning))
+    <div class="mb-6 rounded-xl border border-yellow-500/40 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-200">
+        <i class="fa-solid fa-triangle-exclamation mr-2"></i>{{ $dbWarning }}
+    </div>
+    @endif
+
     <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
 
         {{-- ===== SIDEBAR ===== --}}
@@ -52,6 +65,16 @@ $todayStr = date('Y-m-d');
             <h3 class="font-bold text-white text-lg border-b border-gray-700 pb-2">
                 <i class="fa-solid fa-building text-red-500 mr-2"></i>Chọn Rạp
             </h3>
+<<<<<<< HEAD
+
+            <div class="space-y-2" id="cinemaList">
+                @forelse($cinemas ?? [] as $index => $cinema)
+                <a
+                    href="{{ route('movies.index', ['cinema' => $cinema->id, 'date' => $selectedDateCarbon->toDateString()]) }}"
+                    class="w-full text-left px-4 py-3 rounded-lg flex items-center justify-between transition-colors block
+                        {{ (int) ($selectedCinemaId ?? 0) === (int) $cinema->id ? 'bg-red-600/20 border border-red-500 text-red-400' : 'bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white' }}"
+                >
+=======
             <div class="space-y-2">
                 <button onclick="selectCinema(this, 'all')" data-cinema="all"
                     class="cinema-btn active w-full text-left px-4 py-3 rounded-lg flex items-center justify-between transition-colors">
@@ -61,6 +84,7 @@ $todayStr = date('Y-m-d');
                 @foreach($cinemas as $cinema)
                 <button onclick="selectCinema(this, '{{ $cinema->id }}')" data-cinema="{{ $cinema->id }}"
                     class="cinema-btn w-full text-left px-4 py-3 rounded-lg flex items-center justify-between transition-colors bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white">
+>>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783
                     <span class="font-medium text-sm">{{ $cinema->name }}</span>
                     <i class="fa-solid fa-chevron-right text-xs"></i>
                 </button>
@@ -73,6 +97,18 @@ $todayStr = date('Y-m-d');
                     <i class="fa-regular fa-calendar text-red-500 mr-2"></i>Ngày Chiếu
                 </h3>
                 <div class="flex overflow-x-auto gap-2 pb-2 hide-scrollbar">
+<<<<<<< HEAD
+                    @foreach (($availableDates ?? collect()) as $date)
+                    @php
+                        $isActiveDate = $date->toDateString() === $selectedDateCarbon->toDateString();
+                    @endphp
+                    <a href="{{ route('movies.index', ['cinema' => $selectedCinemaId, 'date' => $date->toDateString()]) }}" class="flex-shrink-0 w-16 h-20 rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors
+                        {{ $isActiveDate ? 'bg-red-600 text-white' : 'bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700' }}">
+                        <span class="text-xs uppercase">{{ $date->translatedFormat('D') }}</span>
+                        <span class="font-bold text-xl">{{ $date->format('d') }}</span>
+                        <span class="text-xs">{{ $date->translatedFormat('M') }}</span>
+                    </a>
+=======
                     @foreach($dates as $i => $date)
                     <div
                         onclick="selectDate(this, '{{ $date['value'] }}')"
@@ -84,6 +120,7 @@ $todayStr = date('Y-m-d');
                         <span class="font-bold text-xl">{{ $date['day'] }}</span>
                         <span class="text-xs opacity-80">{{ $date['month'] }}</span>
                     </div>
+>>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783
                     @endforeach
                 </div>
             </div>
@@ -97,12 +134,53 @@ $todayStr = date('Y-m-d');
         {{-- ===== DANH SÁCH PHIM ===== --}}
         <div class="md:col-span-3 space-y-6">
             <div class="flex items-center justify-between">
+<<<<<<< HEAD
+                <h2 class="text-xl font-bold text-white">
+                    {{ $selectedDateCarbon->format('d/m/Y') }} — {{ $selectedCinemaName }}
+=======
                 <h2 class="text-xl font-bold text-white" id="pageTitle">
                     {{ date('d/m/Y') }} — Tất Cả Rạp
+>>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783
                 </h2>
                 <span class="text-sm text-gray-500" id="movieCount">{{ count($movies ?? []) }} phim</span>
             </div>
 
+<<<<<<< HEAD
+            @forelse($movies ?? [] as $movie)
+            <div
+                class="movie-item flex flex-col md:flex-row bg-gray-800 rounded-xl border border-gray-700 overflow-hidden hover:border-red-500/40 hover:shadow-lg hover:shadow-red-500/5 transition-all"
+                data-name="{{ strtolower($movie->name) }}"
+                data-genre="{{ strtolower($movie->genre ?? '') }}"
+            >
+                {{-- Poster --}}
+                <div class="w-full md:w-44 h-64 md:h-auto flex-shrink-0 overflow-hidden">
+                    <img
+                        src="{{ $movie->poster ?? 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=300&h=400&auto=format&fit=crop' }}"
+                        class="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                        alt="{{ $movie->name }}"
+                    >
+                </div>
+
+                {{-- Thông tin phim --}}
+                <div class="p-6 flex-1 flex flex-col">
+                    {{-- Badges --}}
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex gap-2">
+                            <span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded">
+                                {{ $movie->age_limit ? 'T' . $movie->age_limit : 'P' }}
+                            </span>
+                            @if(isset($movie->showtimes) && $movie->showtimes->count() > 0)
+                                <span class="text-xs border border-blue-500 text-blue-400 px-2 py-0.5 rounded">
+                                    {{ $movie->showtimes->first()->subtitle_name ?: '2D Phụ Đề' }}
+                                </span>
+                            @endif
+                        </div>
+                        @if(isset($movie->rating))
+                        <div class="text-yellow-500 text-sm font-bold">
+                            <i class="fa-solid fa-star mr-1"></i>{{ number_format($movie->rating, 1) }}
+                        </div>
+                        @endif
+=======
             <div id="movieList" class="space-y-6">
                 @foreach($movies as $movie)
                 <div
@@ -117,6 +195,7 @@ $todayStr = date('Y-m-d');
                         <img src="{{ $movie->poster ?? 'https://via.placeholder.com/300x400?text=No+Image' }}"
                             class="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                             alt="{{ $movie->name }}">
+>>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783
                     </div>
 
                     {{-- Info --}}
@@ -138,6 +217,31 @@ $todayStr = date('Y-m-d');
                             <i class="fa-regular fa-clock mr-1"></i>{{ $movie->duration ?? 120 }} phút
                         </p>
 
+<<<<<<< HEAD
+                    {{-- Thông tin --}}
+                    <p class="text-sm text-gray-500 mb-4 flex items-center gap-3">
+                        <span><i class="fa-regular fa-clock mr-1"></i>{{ $movie->duration ?? 120 }} phút</span>
+                        <span class="text-gray-700">|</span>
+                        <span><i class="fa-solid fa-film mr-1"></i>{{ $movie->genre ?? 'Hành Động' }}</span>
+                        @if($movie->release_date ?? null)
+                        <span class="text-gray-700">|</span>
+                        <span><i class="fa-regular fa-calendar mr-1"></i>{{ \Carbon\Carbon::parse($movie->release_date)->format('d/m/Y') }}</span>
+                        @endif
+                    </p>
+
+                    {{-- Suất chiếu --}}
+                    <div class="mt-auto">
+                        <p class="text-sm font-semibold text-gray-300 mb-3">Chọn suất chiếu:</p>
+                        <div class="flex flex-wrap gap-2">
+                            @if(isset($movie->showtimes) && $movie->showtimes->count() > 0)
+                                @foreach($movie->showtimes as $showtime)
+                                <a
+                                    href="{{ route('booking.show', $showtime->id) }}"
+                                    class="px-4 py-2 bg-gray-900 border border-gray-600 text-gray-200 rounded-md hover:border-red-500 hover:text-red-400 transition-colors text-sm font-medium"
+                                    title="{{ trim(($showtime->cinema_name ?? '') . ' - ' . ($showtime->room_name ?? '')) }}"
+                                >
+                                    {{ \Carbon\Carbon::parse($showtime->start_time)->format('H:i') }}
+=======
                         {{-- Suất chiếu -- cập nhật bằng JS --}}
                         <div class="mt-auto">
                             <p class="text-sm font-semibold text-gray-300 mb-3">
@@ -147,6 +251,7 @@ $todayStr = date('Y-m-d');
                                 <a href="{{ route('booking.show', $movie->id) }}"
                                     class="px-4 py-2 bg-gray-900 border border-gray-600 text-gray-200 rounded-md hover:border-red-500 hover:text-red-400 transition-colors text-sm font-medium">
                                     09:00
+>>>>>>> caadfaab0b0675e8546d2e43125a08a41c10e783
                                 </a>
                                 <a href="{{ route('booking.show', $movie->id) }}"
                                     class="px-4 py-2 bg-gray-900 border border-gray-600 text-gray-200 rounded-md hover:border-red-500 hover:text-red-400 transition-colors text-sm font-medium">
