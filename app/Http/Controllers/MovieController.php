@@ -42,7 +42,8 @@ class MovieController extends Controller
      */
     public function list()
     {
-        $movies = Movie::paginate(12);
-        return view('movies.index', compact('movies'));
+        $movies = Movie::all();
+        $cinemas = \App\Models\Cinema::all();
+        return view('movies.index', compact('movies', 'cinemas'));
     }
 }
