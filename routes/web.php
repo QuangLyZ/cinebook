@@ -49,6 +49,7 @@ Route::get('/cinemas/{id}', [CinemaController::class, 'show'])->name('cinemas.sh
 // Booking
 Route::get('/booking/{id}', [BookingController::class, 'show'])->name('booking.show');
 Route::post('/booking/{id}/checkout', [BookingController::class, 'checkout'])->name('booking.checkout');
+Route::get('/vnpay-return', [BookingController::class, 'vnpayReturn'])->name('vnpay.return');
 
 // Feedback
 Route::get('/feedback', function () {

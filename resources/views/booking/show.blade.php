@@ -515,16 +515,13 @@
                 const payload = await response.json();
 
                 if (!response.ok) {
-                    if (response.status === 401 && payload.login_url) {
-                        showFormError(payload.message || 'Bạn cần đăng nhập để tiếp tục.');
-                        window.setTimeout(() => {
-                            window.location.href = payload.login_url;
-                        }, 1200);
-                        return;
-                    }
-
                     const errorText = payload.message || Object.values(payload.errors || {}).flat().join(' ') || 'Thanh toán thất bại.';
                     showFormError(errorText);
+                    return;
+                }
+
+                if (payload.payment_url) {
+                    window.location.href = payload.payment_url;
                     return;
                 }
 
