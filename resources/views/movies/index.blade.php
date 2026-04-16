@@ -2,8 +2,14 @@
 
 @section('content')
 @php
-    $selectedDateCarbon = \Carbon\Carbon::parse($selectedDate ?? now()->toDateString());
+    // Determine if user requested 'all' dates and prepare date labels/carbon accordingly
+    $isAllDates = ($selectedDate ?? '') === 'all';
+    $selectedDateCarbon = $isAllDates
+        ? \Carbon\Carbon::today()
+        : \Carbon\Carbon::parse($selectedDate ?? now()->toDateString());
+
     $selectedCinemaName = $selectedCinema->name ?? 'Tất Cả Rạp';
+    $selectedDateLabel = $isAllDates ? 'Tất Cả Ngày' : $selectedDateCarbon->format('d/m/Y');
 @endphp
 
 <div class="bg-gray-900 border-b border-gray-800">
@@ -77,12 +83,28 @@
                     <i class="fa-regular fa-calendar text-red-500 mr-2"></i>Ngày Chiếu
                 </h3>
                 <div class="flex overflow-x-auto gap-2 pb-2 hide-scrollbar">
+                        @php
+                            $isActiveAll = ($selectedDate ?? '') === 'all';
+                            $allQuery = array_filter(['cinema' => $selectedCinemaId, 'date' => 'all'], fn($v) => !is_null($v) && $v !== '');
+                        @endphp
+                        <a href="{{ route('movies.index', $allQuery) }}" class="flex-shrink-0 w-16 h-20 rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors {{ $isActiveAll ? 'bg-red-600 text-white' : 'bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700' }}">
+                            <span class="text-xs uppercase">Tất cả</span>
+                            <span class="font-bold text-xl">--</span>
+                            <span class="text-xs">Ngày</span>
+                        </a>
                     @foreach (($availableDates ?? collect()) as $date)
                     @php
-                        $isActiveDate = $date->toDateString() === $selectedDateCarbon->toDateString();
+                            $isActiveDate = !($isAllDates) && $date->toDateString() === $selectedDateCarbon->toDateString();
+                        // Build query params but avoid sending null values to the route helper
+                        $dateQuery = array_filter([
+                            'cinema' => $selectedCinemaId,
+                            'date' => $date->toDateString(),
+                        ], function ($v) { return !is_null($v) && $v !== ''; });
                     @endphp
-                    <a href="{{ route('movies.index', ['cinema' => $selectedCinemaId, 'date' => $date->toDateString()]) }}" class="flex-shrink-0 w-16 h-20 rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors
-                        {{ $isActiveDate ? 'bg-red-600 text-white' : 'bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700' }}">
+                    <a href="{{ route('movies.index', $dateQuery) }}"
+                       class="showtime-date flex-shrink-0 w-16 h-20 rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors
+                            {{ $isActiveDate ? 'bg-red-600 text-white' : 'bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700' }}"
+                       data-date="{{ $date->toDateString() }}">
                         <span class="text-xs uppercase">{{ $date->translatedFormat('D') }}</span>
                         <span class="font-bold text-xl">{{ $date->format('d') }}</span>
                         <span class="text-xs">{{ $date->translatedFormat('M') }}</span>
@@ -101,7 +123,7 @@
         <div class="md:col-span-3 space-y-6">
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-bold text-white">
-                    {{ $selectedDateCarbon->format('d/m/Y') }} — {{ $selectedCinemaName }}
+                    {{ $selectedDateLabel }} — {{ $selectedCinemaName }}
                 </h2>
                 <span class="text-sm text-gray-500" id="movieCount">{{ count($movies ?? []) }} phim</span>
             </div>

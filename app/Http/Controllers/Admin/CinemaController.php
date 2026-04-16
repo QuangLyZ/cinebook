@@ -17,6 +17,9 @@ class CinemaController extends Controller
             'activeTab' => 'management',
             'pageTitle' => 'Quản lý Rạp',
         ]);
+        $cinemas = Cinema::orderBy('name')->get();
+ 
+        return view('theaters', compact('cinemas'));
     }
 
     public function create()
@@ -126,4 +129,5 @@ class CinemaController extends Controller
         return redirect()->route('admin.cinemas.index')
             ->with('success', 'Xóa rạp chiếu thành công!');
     }
+    
 }

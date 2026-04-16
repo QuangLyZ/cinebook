@@ -7,7 +7,9 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use App\Models\Cinema;
 
 class CinemaController extends Controller
 {
@@ -19,11 +21,31 @@ class CinemaController extends Controller
             $cinemas = \App\Models\Cinema::select('id', 'name', 'address')
                 ->orderBy('name')
                 ->get();
-        } catch (QueryException) {
+        } catch (QueryException $e) {
+            // Log the database error so we can diagnose why the query failed in web requests.
+            Log::error('CinemaController::theaters QueryException: ' . $e->getMessage());
             // Keep the page renderable when the schema has not been imported yet.
         }
 
         return view('cinemas.index', [
+            'cinemas' => $cinemas,
+        ]);
+    }
+
+    /**
+     * Public theaters listing used by the `/cinemas` route.
+     * Returns the `theaters` view with a collection of cinemas.
+     */
+    public function theaters(): View
+    {
+        $cinemas = collect();
+        try {
+            // load full cinema records used by the public view
+            $cinemas = Cinema::orderBy('name')->get();
+        } catch (QueryException) {
+            // Keep the page renderable when the schema has not been imported yet.
+        }
+        return view('theaters', [
             'cinemas' => $cinemas,
         ]);
     }
@@ -36,10 +58,8 @@ class CinemaController extends Controller
         $selectedDate = Carbon::today()->toDateString();
 
         try {
-            $cinema = DB::table('cinemas')
-                ->select('id', 'name', 'address')
-                ->where('id', $cinemaId)
-                ->first();
+            // Use Eloquent to retrieve the full Cinema model so casts and relations work
+            $cinema = Cinema::with('rooms')->find($cinemaId);
 
             abort_if(! $cinema, 404);
 

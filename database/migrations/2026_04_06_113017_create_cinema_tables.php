@@ -16,6 +16,16 @@ return new class extends Migration
             $table->string('name');
             $table->text('address')->nullable();
             $table->timestamps();
+            $table->string('district')->nullable()->after('address');
+            $table->string('phone')->nullable()->after('district');
+            $table->string('hours')->nullable()->after('phone');
+            $table->integer('screens')->default(0)->after('hours');
+            $table->integer('seats')->default(0)->after('screens');
+            // Lưu dạng JSON: ["IMAX","4DX","Dolby","VIP"]
+            $table->json('features')->nullable()->after('seats');
+            $table->string('image')->nullable()->after('features');
+            $table->string('map')->nullable()->after('image');
+            $table->string('status')->default('open')->after('map');
         });
 
         Schema::create('subtitles', function (Blueprint $table) {
@@ -117,5 +127,11 @@ return new class extends Migration
         Schema::dropIfExists('movies');
         Schema::dropIfExists('subtitles');
         Schema::dropIfExists('cinemas');
+        Schema::table('cinemas', function (Blueprint $table) {
+            $table->dropColumn([
+                'district', 'phone', 'hours', 'screens',
+                'seats', 'features', 'image', 'map', 'status',
+            ]);
+        });
     }
 };
