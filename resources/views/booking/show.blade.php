@@ -147,19 +147,8 @@
                     </div>
 
                     <button id="payButton" type="button" class="flex w-full items-center justify-center rounded-xl bg-red-600 py-4 text-lg font-bold text-white shadow-lg shadow-red-500/30 transition-all hover:bg-red-700">
-                        XEM THANH TOÁN
+                        THANH TOÁN NGAY
                     </button>
-
-                    <div id="paymentDetails" class="mt-4 hidden rounded-2xl border border-gray-700 bg-gray-950 p-4">
-                        <div class="mb-4 flex items-center justify-between">
-                            <div>
-                                <p id="paymentTitle" class="text-sm text-gray-400">Phương thức thanh toán đã chọn</p>
-                                <h3 id="paymentMethodLabel" class="text-lg font-bold text-white">VNPay</h3>
-                            </div>
-                            <span id="countdownTimer" class="inline-flex items-center rounded-full bg-red-600 px-3 py-1 text-sm font-semibold text-white">10:00</span>
-                        </div>
-                        <div id="paymentContent" class="space-y-4 text-sm text-gray-300"></div>
-                    </div>
                 </form>
             </div>
         </div>
@@ -540,7 +529,7 @@
             } finally {
                 isSubmitting = false;
                 payButton.disabled = false;
-                payButton.textContent = isCheckoutStarted ? 'XÁC NHẬN THANH TOÁN' : 'XEM THANH TOÁN';
+                payButton.textContent = 'THANH TOÁN NGAY';
             }
         }
 
@@ -615,12 +604,8 @@
         });
 
         payButton.addEventListener('click', function () {
-            if (!isCheckoutStarted) {
-                applyVoucherByCode(voucherField.value);
-                renderPaymentSection();
-                return;
-            }
-
+            applyVoucherByCode(voucherField.value);
+            
             if (!validateBookingForm()) {
                 return;
             }

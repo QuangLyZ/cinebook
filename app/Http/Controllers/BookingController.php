@@ -43,7 +43,7 @@ class BookingController extends Controller
                 ])
                 ->first();
 
-            abort_if(! $showtime, 404);
+            abort_if(!$showtime, 404);
 
             $seats = DB::table('seats')
                 ->where('room_id', $showtime->room_id)
@@ -67,7 +67,7 @@ class BookingController extends Controller
 
         $startTime = $showtime?->start_time ? Carbon::parse($showtime->start_time) : null;
         $seatMap = $this->buildSeatMap($seats);
-        $voucherPayload = $availableVouchers->map(fn ($voucher) => [
+        $voucherPayload = $availableVouchers->map(fn($voucher) => [
             'code' => $voucher->code,
             'discount_value' => $voucher->discount_value ? (int) $voucher->discount_value : null,
             'discount_rate' => $voucher->discount_rate,
@@ -95,7 +95,7 @@ class BookingController extends Controller
 
     public function checkout(Request $request, int $showtimeId): JsonResponse
     {
-        if (! $request->user()) {
+        if (!$request->user()) {
             $this->recordPaymentLog([
                 'user_id' => null,
                 'ticket_id' => null,
@@ -137,22 +137,35 @@ class BookingController extends Controller
 
             $result = DB::transaction(function () use ($request, $showtimeId, $data) {
                 $showtime = DB::table('showtimes')->where('id', $showtimeId)->first();
-                if (! $showtime) {
+                if (!$showtime) {
                     throw ValidationException::withMessages([
                         'showtime' => 'Suất chiếu không còn tồn tại.',
                     ]);
                 }
 
                 $seatNames = collect($data['seat_names'])
-                    ->map(fn ($seat) => strtoupper(trim($seat)))
+                    ->map(fn($seat) => strtoupper(trim($seat)))
                     ->unique()
                     ->values();
+                \Log::info('=== SEAT DEBUG ===', [
+                    'showtime_id' => $showtimeId,
+                    'room_id' => $showtime->room_id,
+                    'seat_names_in' => $seatNames->all(),
+                    'all_seats_in_room' => DB::table('seats')
+                        ->where('room_id', $showtime->room_id)
+                        ->pluck('seat_name')
+                        ->all(),
+                ]);
 
                 $seats = DB::table('seats')
                     ->where('room_id', $showtime->room_id)
-                    ->whereIn('seat_name', $seatNames)
+                    ->whereIn(DB::raw('UPPER(seat_name)'), $seatNames)
                     ->select(['id', 'seat_name'])
                     ->get();
+                \Log::info('=== SEAT QUERY RESULT ===', [
+                    'seats_found' => $seats->count(),
+                    'seats_data' => $seats->toArray(),
+                ]);
 
                 if ($seats->count() !== $seatNames->count()) {
                     throw ValidationException::withMessages([
@@ -176,7 +189,7 @@ class BookingController extends Controller
                 $voucher = $this->resolveVoucher($data['voucher_code'] ?? null);
                 $discountAmount = $voucher ? $this->calculateDiscount($voucher, $baseTotal) : 0;
                 $finalPrice = max($baseTotal - $discountAmount, 0);
-                $referenceCode = 'PAY-'.now()->format('YmdHis').'-'.rand(1000, 9999);
+                $referenceCode = 'PAY-' . now()->format('YmdHis') . '-' . rand(1000, 9999);
 
                 $ticketId = DB::table('tickets')->insertGetId([
                     'user_id' => $request->user()->id,
@@ -194,7 +207,7 @@ class BookingController extends Controller
                     'updated_at' => now(),
                 ]);
 
-                $seatRows = $seats->map(fn ($seat) => [
+                $seatRows = $seats->map(fn($seat) => [
                     'ticket_id' => $ticketId,
                     'seat_id' => $seat->id,
                     'price_at_booking' => self::SEAT_PRICE,
@@ -362,7 +375,7 @@ class BookingController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (! $voucher) {
+        if (!$voucher) {
             throw ValidationException::withMessages([
                 'voucher_code' => 'Voucher không tồn tại hoặc đang bị tắt.',
             ]);
@@ -380,7 +393,7 @@ class BookingController extends Controller
             ]);
         }
 
-        if (! is_null($voucher->usage_limit) && (int) $voucher->used_count >= (int) $voucher->usage_limit) {
+        if (!is_null($voucher->usage_limit) && (int) $voucher->used_count >= (int) $voucher->usage_limit) {
             throw ValidationException::withMessages([
                 'voucher_code' => 'Voucher đã hết lượt sử dụng.',
             ]);
@@ -391,7 +404,7 @@ class BookingController extends Controller
 
     protected function calculateDiscount(object $voucher, int $baseTotal): int
     {
-        if (! is_null($voucher->discount_rate)) {
+        if (!is_null($voucher->discount_rate)) {
             return (int) round($baseTotal * ((int) $voucher->discount_rate / 100));
         }
 
@@ -402,18 +415,18 @@ class BookingController extends Controller
     {
         if ($seats->isEmpty()) {
             return collect(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'])->map(function ($row) {
-                return collect(range(1, 14))->map(fn ($number) => (object) [
+                return collect(range(1, 14))->map(fn($number) => (object) [
                     'id' => null,
-                    'seat_name' => $row.$number,
+                    'seat_name' => $row . $number,
                     'seat_type' => 'standard',
                 ]);
             });
         }
 
         return $seats
-            ->groupBy(fn ($seat) => preg_replace('/\d+$/', '', $seat->seat_name) ?: 'A')
+            ->groupBy(fn($seat) => preg_replace('/\d+$/', '', $seat->seat_name) ?: 'A')
             ->sortKeys()
-            ->map(fn ($group) => $group->sortBy(function ($seat) {
+            ->map(fn($group) => $group->sortBy(function ($seat) {
                 preg_match('/(\d+)$/', $seat->seat_name, $matches);
 
                 return (int) ($matches[1] ?? 0);
@@ -479,15 +492,15 @@ class BookingController extends Controller
         $index = 0;
 
         foreach ($inputData as $key => $value) {
-            $pair = urlencode($key).'='.urlencode((string) $value);
-            $hashData .= $index === 0 ? $pair : '&'.$pair;
-            $query .= $pair.'&';
+            $pair = urlencode($key) . '=' . urlencode((string) $value);
+            $hashData .= $index === 0 ? $pair : '&' . $pair;
+            $query .= $pair . '&';
             $index++;
         }
 
         $secureHash = hash_hmac('sha512', $hashData, (string) $vnpHashSecret);
 
-        return $vnpUrl.'?'.$query.'vnp_SecureHash='.$secureHash;
+        return $vnpUrl . '?' . $query . 'vnp_SecureHash=' . $secureHash;
     }
 
     public function vnpayReturn(Request $request)
@@ -513,7 +526,7 @@ class BookingController extends Controller
     {
         $ticket = $this->buildTicketMailData($ticketId, $paymentMethod);
 
-        if (! $ticket || blank($ticket->email)) {
+        if (!$ticket || blank($ticket->email)) {
             return;
         }
 
@@ -556,7 +569,7 @@ class BookingController extends Controller
             ])
             ->first();
 
-        if (! $ticket) {
+        if (!$ticket) {
             return null;
         }
 
@@ -565,7 +578,7 @@ class BookingController extends Controller
             ->where('ticket_details.ticket_id', $ticketId)
             ->orderBy('seats.seat_name')
             ->pluck('seats.seat_name')
-            ->map(fn ($seatName) => strtoupper($seatName))
+            ->map(fn($seatName) => strtoupper($seatName))
             ->values()
             ->all();
 
