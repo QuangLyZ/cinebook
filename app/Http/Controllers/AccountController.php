@@ -51,7 +51,7 @@ class AccountController extends Controller
 
     protected function loadTickets(int $userId): Collection
     {
-        return DB::table('tickets')
+        $tickets = DB::table('tickets')
             ->leftJoin('showtimes', 'showtimes.id', '=', 'tickets.showtime_id')
             ->leftJoin('movies', 'movies.id', '=', 'showtimes.movie_id')
             ->leftJoin('rooms', 'rooms.id', '=', 'showtimes.room_id')
@@ -74,8 +74,21 @@ class AccountController extends Controller
                 'voucher_usages.voucher_code',
                 'voucher_usages.discount_amount',
             ])
-            ->get()
-            ->map(function ($ticket) {
+            ->get();
+
+        $ticketIds = $tickets->pluck('id')->all();
+        $seatsByTicket = collect();
+        
+        if (!empty($ticketIds)) {
+            $seatsByTicket = DB::table('ticket_details')
+                ->join('seats', 'seats.id', '=', 'ticket_details.seat_id')
+                ->whereIn('ticket_details.ticket_id', $ticketIds)
+                ->select(['ticket_details.ticket_id', 'seats.seat_name'])
+                ->get()
+                ->groupBy('ticket_id');
+        }
+
+        return $tickets->map(function ($ticket) use ($seatsByTicket) {
                 $discountAmount = (float) ($ticket->discount_amount ?? 0);
                 $totalPrice = (float) ($ticket->total_price ?? 0);
                 $storedFinalPrice = $ticket->final_price !== null ? (float) $ticket->final_price : null;
@@ -83,6 +96,9 @@ class AccountController extends Controller
                 $ticket->start_time = $ticket->start_time ? Carbon::parse($ticket->start_time) : null;
                 $ticket->discount_amount = $discountAmount;
                 $ticket->final_price = $storedFinalPrice ?? max($totalPrice - $discountAmount, 0);
+
+                $seats = $seatsByTicket->get($ticket->id) ?? collect();
+                $ticket->seat_names = collect($seats)->pluck('seat_name')->join(', ');
 
                 return $ticket;
             });

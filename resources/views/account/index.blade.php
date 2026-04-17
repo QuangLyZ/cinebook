@@ -89,6 +89,7 @@
                                         <div class="font-semibold text-white">Suất chiếu</div>
                                         <div class="mt-2">{{ $ticket->cinema_name ?: 'CineBook' }} {{ $ticket->room_name ? '| '.$ticket->room_name : '' }}</div>
                                         <div class="mt-1 text-gray-500">{{ $ticket->start_time?->format('d/m/Y H:i') ?: 'Đang cập nhật lịch chiếu' }}</div>
+                                        <div class="mt-2 text-sm font-bold text-yellow-500">Ghế: {{ $ticket->seat_names ?: 'Không có' }}</div>
                                     </div>
                                     <div class="rounded-3xl border border-gray-800 bg-gray-950/70 p-4">
                                         <div class="font-semibold text-white">Thông tin nhận vé</div>
