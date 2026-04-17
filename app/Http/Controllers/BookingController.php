@@ -79,8 +79,8 @@ class BookingController extends Controller
         return view('booking.show', [
             'showtime' => $showtime,
             'showDateLabel' => $startTime?->isToday()
-                ? 'Hôm nay'
-                : ($startTime ? ucfirst($startTime->translatedFormat('l, d/m/Y')) : 'Lịch chiếu đang cập nhật'),
+                ? 'Hom nay'
+                : ($startTime ? ucfirst($startTime->translatedFormat('l, d/m/Y')) : 'Lich chieu dang cap nhat'),
             'showTimeLabel' => $startTime?->format('H:i') ?? '--:--',
             'posterUrl' => filled($showtime?->poster)
                 ? $showtime->poster
@@ -110,14 +110,14 @@ class BookingController extends Controller
                 'voucher_code' => $request->input('voucher_code'),
                 'customer_email' => $request->input('email'),
                 'customer_phone' => $request->input('phone'),
-                'error_message' => 'Người dùng chưa đăng nhập.',
+                'error_message' => 'Nguoi dung chua dang nhap.',
                 'metadata' => [
                     'seat_names' => (array) $request->input('seat_names', []),
                 ],
             ]);
 
             return response()->json([
-                'message' => 'Bạn cần đăng nhập để hoàn tất thanh toán và lưu lịch sử vé.',
+                'message' => 'Ban can dang nhap de hoan tat thanh toan va luu lich su ve.',
                 'login_url' => route('login'),
             ], 401);
         }
@@ -132,14 +132,15 @@ class BookingController extends Controller
                 'seat_names.*' => ['required', 'string'],
                 'voucher_code' => ['nullable', 'string', 'max:50'],
             ], [
-                'seat_names.required' => 'Vui lòng chọn ít nhất một ghế.',
+                'seat_names.required' => 'Vui long chon it nhat mot ghe.',
             ]);
 
             $result = DB::transaction(function () use ($request, $showtimeId, $data) {
                 $showtime = DB::table('showtimes')->where('id', $showtimeId)->first();
+
                 if (!$showtime) {
                     throw ValidationException::withMessages([
-                        'showtime' => 'Suất chiếu không còn tồn tại.',
+                        'showtime' => 'Suat chieu khong con ton tai.',
                     ]);
                 }
 
@@ -147,7 +148,8 @@ class BookingController extends Controller
                     ->map(fn($seat) => strtoupper(trim($seat)))
                     ->unique()
                     ->values();
-                \Log::info('=== SEAT DEBUG ===', [
+
+                Log::info('=== SEAT DEBUG ===', [
                     'showtime_id' => $showtimeId,
                     'room_id' => $showtime->room_id,
                     'seat_names_in' => $seatNames->all(),
@@ -162,14 +164,15 @@ class BookingController extends Controller
                     ->whereIn(DB::raw('UPPER(seat_name)'), $seatNames)
                     ->select(['id', 'seat_name'])
                     ->get();
-                \Log::info('=== SEAT QUERY RESULT ===', [
+
+                Log::info('=== SEAT QUERY RESULT ===', [
                     'seats_found' => $seats->count(),
                     'seats_data' => $seats->toArray(),
                 ]);
 
                 if ($seats->count() !== $seatNames->count()) {
                     throw ValidationException::withMessages([
-                        'seat_names' => 'Một hoặc nhiều ghế không hợp lệ cho phòng chiếu này.',
+                        'seat_names' => 'Mot hoac nhieu ghe khong hop le cho phong chieu nay.',
                     ]);
                 }
 
@@ -181,7 +184,7 @@ class BookingController extends Controller
 
                 if ($alreadyBooked) {
                     throw ValidationException::withMessages([
-                        'seat_names' => 'Một hoặc nhiều ghế vừa được người khác đặt. Vui lòng chọn lại.',
+                        'seat_names' => 'Mot hoac nhieu ghe vua duoc nguoi khac dat. Vui long chon lai.',
                     ]);
                 }
 
@@ -248,6 +251,7 @@ class BookingController extends Controller
                     'email' => $data['email'],
                     'phone' => $data['phone'],
                     'reference_code' => $referenceCode,
+                    'fullname' => $data['fullname'],
                 ];
             });
 
@@ -274,15 +278,20 @@ class BookingController extends Controller
 
             if ($data['payment_method'] === 'vnpay') {
                 $paymentUrl = $this->createVnpayUrl($result['final_price'], $result['ticket_id']);
+
                 return response()->json(['payment_url' => $paymentUrl]);
             }
 
-            $this->sendTicketConfirmationEmail($result['ticket_id'], $data['payment_method']);
+            $emailDelivered = $this->sendTicketConfirmationEmail($result['ticket_id'], $data['payment_method']);
 
             return response()->json([
-                'message' => 'Thanh toán thành công. Vé đã được lưu vào tài khoản của bạn.',
+                'message' => $emailDelivered
+                    ? 'Thanh toan thanh cong. Ve da duoc gui toi email nhan ve cua ban.'
+                    : 'Thanh toan thanh cong. Ve da duoc luu vao tai khoan cua ban.',
                 'redirect_url' => route('account.index', ['tab' => 'tickets']),
                 'ticket' => $result,
+                'ticket_email' => $result['email'],
+                'email_sent' => $emailDelivered,
             ]);
         } catch (ValidationException $exception) {
             $this->recordPaymentLog([
@@ -334,7 +343,7 @@ class BookingController extends Controller
             ]);
 
             return response()->json([
-                'message' => 'Thanh toán chưa hoàn tất. Vui lòng thử lại.',
+                'message' => 'Thanh toan chua hoan tat. Vui long thu lai.',
             ], 500);
         }
     }
@@ -366,6 +375,7 @@ class BookingController extends Controller
     protected function resolveVoucher(?string $voucherCode): ?object
     {
         $normalizedCode = strtoupper(trim((string) $voucherCode));
+
         if ($normalizedCode === '') {
             return null;
         }
@@ -377,25 +387,25 @@ class BookingController extends Controller
 
         if (!$voucher) {
             throw ValidationException::withMessages([
-                'voucher_code' => 'Voucher không tồn tại hoặc đang bị tắt.',
+                'voucher_code' => 'Voucher khong ton tai hoac dang bi tat.',
             ]);
         }
 
         if ($voucher->starts_at && Carbon::parse($voucher->starts_at)->isFuture()) {
             throw ValidationException::withMessages([
-                'voucher_code' => 'Voucher chưa đến thời gian áp dụng.',
+                'voucher_code' => 'Voucher chua den thoi gian ap dung.',
             ]);
         }
 
         if ($voucher->expires_at && Carbon::parse($voucher->expires_at)->isPast()) {
             throw ValidationException::withMessages([
-                'voucher_code' => 'Voucher đã hết hạn.',
+                'voucher_code' => 'Voucher da het han.',
             ]);
         }
 
         if (!is_null($voucher->usage_limit) && (int) $voucher->used_count >= (int) $voucher->usage_limit) {
             throw ValidationException::withMessages([
-                'voucher_code' => 'Voucher đã hết lượt sử dụng.',
+                'voucher_code' => 'Voucher da het luot su dung.',
             ]);
         }
 
@@ -508,36 +518,56 @@ class BookingController extends Controller
         $ticketId = (int) $request->vnp_TxnRef;
 
         if ($request->vnp_ResponseCode === '00') {
-            $this->sendTicketConfirmationEmail($ticketId, 'vnpay');
+            $emailDelivered = $this->sendTicketConfirmationEmail($ticketId, 'vnpay');
+            $ticketEmail = DB::table('tickets')->where('id', $ticketId)->value('email');
 
-            return redirect()->route('account.index', ['tab' => 'tickets'])->with('success', 'Thanh toán thành công!');
+            $successMessage = $emailDelivered && filled($ticketEmail)
+                ? 'Thanh toan thanh cong! Ve da duoc gui toi ' . $ticketEmail . '.'
+                : 'Thanh toan thanh cong!';
+
+            return redirect()->route('account.index', ['tab' => 'tickets'])->with('success', $successMessage);
         }
 
         $showtimeId = DB::table('tickets')->where('id', $ticketId)->value('showtime_id');
 
         if ($showtimeId) {
-            return redirect()->route('booking.show', ['id' => $showtimeId])->with('error', 'Thanh toán thất bại!');
+            return redirect()->route('booking.show', ['id' => $showtimeId])->with('error', 'Thanh toan that bai!');
         }
 
-        return redirect()->route('account.index', ['tab' => 'tickets'])->with('error', 'Thanh toán thất bại!');
+        return redirect()->route('account.index', ['tab' => 'tickets'])->with('error', 'Thanh toan that bai!');
     }
 
-    protected function sendTicketConfirmationEmail(int $ticketId, string $paymentMethod): void
+    protected function sendTicketConfirmationEmail(int $ticketId, string $paymentMethod): bool
     {
         $ticket = $this->buildTicketMailData($ticketId, $paymentMethod);
 
         if (!$ticket || blank($ticket->email)) {
-            return;
+            return false;
+        }
+
+        if (!blank($ticket->emailed_at)) {
+            return true;
         }
 
         try {
             Mail::to($ticket->email)->send(new BookingTicketMail($ticket));
+
+            DB::table('tickets')
+                ->where('id', $ticketId)
+                ->update([
+                    'emailed_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+            return true;
         } catch (\Throwable $exception) {
-            Log::error('Không thể gửi email vé xem phim.', [
+            Log::error('Khong the gui email ve xem phim.', [
                 'ticket_id' => $ticketId,
                 'email' => $ticket->email,
                 'message' => $exception->getMessage(),
             ]);
+
+            return false;
         }
     }
 
@@ -558,6 +588,8 @@ class BookingController extends Controller
                 'tickets.booking_date',
                 'tickets.total_price',
                 'tickets.final_price',
+                'tickets.reference_code',
+                'tickets.emailed_at',
                 'movies.name as movie_name',
                 'movies.age_limit',
                 'showtimes.start_time',
@@ -584,12 +616,14 @@ class BookingController extends Controller
 
         $bookingDate = $ticket->booking_date ? Carbon::parse($ticket->booking_date) : null;
         $startTime = $ticket->start_time ? Carbon::parse($ticket->start_time) : null;
+        $emailedAt = $ticket->emailed_at ? Carbon::parse($ticket->emailed_at) : null;
         $discountAmount = (float) ($ticket->discount_amount ?? 0);
         $totalPrice = (float) ($ticket->total_price ?? 0);
         $storedFinalPrice = $ticket->final_price !== null ? (float) $ticket->final_price : null;
 
         $ticket->booking_date = $bookingDate;
         $ticket->start_time = $startTime;
+        $ticket->emailed_at = $emailedAt;
         $ticket->seat_names = $seats;
         $ticket->seat_list = implode(', ', $seats);
         $ticket->discount_amount = $discountAmount;

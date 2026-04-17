@@ -109,6 +109,7 @@
                         <div class="space-y-3">
                             <input id="customerName" name="customerName" type="text" value="{{ old('customerName', $user?->fullname ?? '') }}" placeholder="Họ và tên" class="w-full rounded border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:border-red-500 focus:outline-none" required>
                             <input id="customerEmail" name="customerEmail" type="email" value="{{ old('customerEmail', $user?->email ?? '') }}" placeholder="Email nhận vé" class="w-full rounded border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:border-red-500 focus:outline-none" required>
+                            <p class="text-xs text-gray-500">Vé điện tử sẽ được gửi đúng vào email bạn nhập ở ô này sau khi thanh toán thành công.</p>
                             <input id="customerPhone" name="customerPhone" type="tel" value="{{ old('customerPhone', $user?->phone ?? '') }}" placeholder="Số điện thoại" class="w-full rounded border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:border-red-500 focus:outline-none" required>
                             <p id="formError" class="mt-1 hidden text-sm text-red-400"></p>
                         </div>
@@ -458,7 +459,7 @@
                         <p class="mb-3 text-center font-semibold text-white">Bạn sẽ được chuyển đến cổng thanh toán PayPal.</p>
                         <p class="text-gray-400">Số tiền: <span class="font-semibold text-white">${formattedAmount}</span></p>
                         ${discountAmount > 0 ? `<p class="text-gray-400">Đã giảm: <span class="font-semibold text-white">${formattedDiscount}</span></p>` : ''}
-                        <p class="mt-3 text-xs text-gray-400">Khi bạn xác nhận ở bước cuối, ticket và voucher usage sẽ được lưu vào DB.</p>
+                        <p class="mt-3 text-xs text-gray-400">Khi bạn xác nhận ở bước cuối, ticket và voucher usage sẽ được lưu vào DB và vé sẽ được gửi tới email nhận vé.</p>
                     </div>
                 `;
                 startCountdown(5 * 60);
@@ -516,9 +517,14 @@
                 }
 
                 try {
+                    const ticketEmail = payload.ticket_email || emailField.value.trim();
+                    const popupMessage = payload.email_sent
+                        ? `Vé của bạn đã được thanh toán và gửi tới ${ticketEmail}.`
+                        : 'Vé của bạn đã được thanh toán thành công.';
+
                     sessionStorage.setItem(bookingConfig.successPopupStorageKey, JSON.stringify({
                         title: 'Thanh toán thành công',
-                        message: 'Vé của bạn đã được thanh toán và được gửi qua email.',
+                        message: popupMessage,
                     }));
                 } catch (error) {
                     // Ignore storage errors and continue redirecting to the account page.

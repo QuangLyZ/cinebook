@@ -8,12 +8,16 @@ class Ticket extends Model
 {
     protected $fillable = [
         'user_id', 'showtime_id', 'fullname', 'email', 'phone',
-        'booking_date', 'total_price'
+        'booking_date', 'total_price', 'discount_amount', 'final_price',
+        'voucher_code', 'reference_code', 'emailed_at'
     ];
 
     protected $casts = [
         'booking_date' => 'datetime',
         'total_price'  => 'decimal:2',
+        'discount_amount' => 'decimal:2',
+        'final_price' => 'decimal:2',
+        'emailed_at' => 'datetime',
     ];
 
     public function user()

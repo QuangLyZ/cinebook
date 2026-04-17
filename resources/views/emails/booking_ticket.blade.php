@@ -3,6 +3,7 @@
     $showDate = $ticket->start_time?->format('d/m/Y');
     $showTime = $ticket->start_time?->format('H:i');
     $ageLimit = $ticket->age_limit ? 'T'.$ticket->age_limit : 'Dang cap nhat';
+    $emailedAt = $ticket->emailed_at?->format('d/m/Y H:i');
 @endphp
 <!DOCTYPE html>
 <html lang="vi">
@@ -73,8 +74,20 @@
                         <td style="padding:14px 22px;color:#ffffff;font-weight:600;">{{ $bookingDate ?: '--' }}</td>
                     </tr>
                     <tr>
+                        <td style="padding:14px 22px;color:#94a3b8;">Ma tham chieu</td>
+                        <td style="padding:14px 22px;color:#ffffff;font-weight:600;">{{ $ticket->reference_code ?: '--' }}</td>
+                    </tr>
+                    <tr>
                         <td style="padding:14px 22px;color:#94a3b8;">Phuong thuc thanh toan</td>
                         <td style="padding:14px 22px;color:#ffffff;font-weight:600;">{{ $ticket->payment_method_label }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:14px 22px;color:#94a3b8;">Email nhan ve</td>
+                        <td style="padding:14px 22px;color:#ffffff;font-weight:600;">{{ $ticket->email ?: '--' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:14px 22px;color:#94a3b8;">Gui email luc</td>
+                        <td style="padding:14px 22px;color:#ffffff;font-weight:600;">{{ $emailedAt ?: '--' }}</td>
                     </tr>
                     <tr>
                         <td style="padding:14px 22px;color:#94a3b8;">Voucher</td>
