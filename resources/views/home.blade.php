@@ -34,9 +34,9 @@
                     <i class="fa-solid fa-play mr-2"></i> XEM TRAILER
                 </a>
             @else
-                <button class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg transition-colors border border-gray-600 flex items-center">
+                <a href="https://www.youtube.com/watch?v=kH1XlwHQv9o" target="_blank" rel="noopener noreferrer" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg transition-colors border border-gray-600 flex items-center">
                     <i class="fa-solid fa-play mr-2"></i> XEM TRAILER
-                </button>
+                </a>
             @endif
         </div>
     </div>

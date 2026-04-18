@@ -44,7 +44,7 @@ class DatabaseSeeder extends Seeder
                 'poster' => '/images/pic1.jpg',
                 'actors' => 'Robert Downey Jr., Chris Evans, Mark Ruffalo',
                 'age_limit' => 18,
-                'trailer_link' => 'https://www.youtube.com/watch?v=example1',
+                'trailer_link' => 'https://www.youtube.com/watch?v=6ZfuNTqbHE8',
             ]
         );
 

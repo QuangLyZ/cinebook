@@ -180,6 +180,7 @@ class BookingController extends Controller
                     ->join('tickets', 'tickets.id', '=', 'ticket_details.ticket_id')
                     ->where('tickets.showtime_id', $showtimeId)
                     ->whereIn('ticket_details.seat_id', $seats->pluck('id'))
+                    ->lockForUpdate() // Ngăn chặn các request khác đọc/ghi vào các dòng này cho đến khi transaction xong
                     ->exists();
 
                 if ($alreadyBooked) {
