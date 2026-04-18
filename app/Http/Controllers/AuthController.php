@@ -53,7 +53,7 @@ class AuthController extends Controller
             
             // Cho đăng nhập luôn
             Auth::login($user);
-            return redirect()->to($this->redirectAfterLogin($user))->with('success', 'Đăng nhập bằng Google thành công! Quá mượt! 🎉');
+            return redirect()->to($this->redirectAfterLogin($user))->with('success', 'Đăng nhập bằng Google thành công.');
             
         } catch (\Exception $e) {
             \Log::error('--- BUG DETECTOR: GOOGLE LOGIN FAILED ---');
@@ -84,8 +84,8 @@ class AuthController extends Controller
             'email' => 'required|string',
             'password' => 'required|string',
         ], [
-            'email.required' => 'Sếp ơi, nhập Email (hoặc SĐT) vào kìa!',
-            'password.required' => 'Mật khẩu đâu sếp ơi?',
+            'email.required' => 'Vui lòng nhập Email hoặc Số điện thoại.',
+            'password.required' => 'Vui lòng nhập mật khẩu.',
         ]);
 
         // Hỗ trợ đăng nhập bằng cả Email hoặc Số điện thoại
@@ -104,11 +104,11 @@ class AuthController extends Controller
             $request->session()->regenerate();
             /** @var User $user */
             $user = Auth::user();
-            return redirect()->to($this->redirectAfterLogin($user))->with('success', 'Đăng nhập thành công! Mời sếp vào nhà! 🎉');
+            return redirect()->to($this->redirectAfterLogin($user))->with('success', 'Đăng nhập thành công.');
         }
 
         return back()->withErrors([
-            'email' => 'Tài khoản hoặc mật khẩu trật lất rồi sếp ơi! Kiểm tra lại nha.',
+            'email' => 'Tài khoản hoặc mật khẩu không chính xác.',
         ])->onlyInput('email');
     }
 
@@ -118,7 +118,7 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         
-        return redirect()->route('home')->with('success', 'Đã đăng xuất thành công! Hẹn gặp lại sếp nha! 👋');
+        return redirect()->route('home')->with('success', 'Đăng xuất thành công.');
     }
 
     public function register(Request $request)
@@ -130,13 +130,13 @@ class AuthController extends Controller
             'phone' => 'required|string|max:20',
             'password' => 'required|string|min:8|confirmed',
         ], [
-            'name.required' => 'Sếp ơi, tên không được để trống nha!',
-            'email.required' => 'Email cũng phải điền vào nè.',
-            'email.email' => 'Email sai định dạng rồi sếp.',
-            'email.unique' => 'Ối giời, email này có người xài rồi!',
-            'password.required' => 'Mật khẩu là bắt buộc.',
-            'password.min' => 'Mật khẩu phải dài ít nhất 8 ký tự nha.',
-            'password.confirmed' => 'Hai mật khẩu sếp nhập không khớp nhau kìa.',
+            'name.required' => 'Vui lòng nhập họ và tên.',
+            'email.required' => 'Vui lòng nhập địa chỉ email.',
+            'email.email' => 'Email không đúng định dạng.',
+            'email.unique' => 'Email này đã được sử dụng.',
+            'password.required' => 'Vui lòng nhập mật khẩu.',
+            'password.min' => 'Mật khẩu phải dài ít nhất 8 ký tự.',
+            'password.confirmed' => 'Xác nhận mật khẩu không khớp.',
         ]);
 
         // 2. Tạo mã OTP ngẫu nhiên 6 số

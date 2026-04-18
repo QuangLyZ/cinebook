@@ -117,7 +117,7 @@ class BookingController extends Controller
             ]);
 
             return response()->json([
-                'message' => 'Ban can dang nhap de hoan tat thanh toan va luu lich su ve.',
+                'message' => 'Bạn cần đăng nhập để hoàn tất thanh toán và lưu lịch sử vé',
                 'login_url' => route('login'),
             ], 401);
         }
@@ -132,7 +132,7 @@ class BookingController extends Controller
                 'seat_names.*' => ['required', 'string'],
                 'voucher_code' => ['nullable', 'string', 'max:50'],
             ], [
-                'seat_names.required' => 'Vui long chon it nhat mot ghe.',
+                'seat_names.required' => 'Vui lòng chọn ít nhất một ghế.',
             ]);
 
             $result = DB::transaction(function () use ($request, $showtimeId, $data) {
@@ -140,7 +140,7 @@ class BookingController extends Controller
 
                 if (!$showtime) {
                     throw ValidationException::withMessages([
-                        'showtime' => 'Suat chieu khong con ton tai.',
+                        'showtime' => 'Suất chiếu không còn tồn tại.',
                     ]);
                 }
 
@@ -172,7 +172,7 @@ class BookingController extends Controller
 
                 if ($seats->count() !== $seatNames->count()) {
                     throw ValidationException::withMessages([
-                        'seat_names' => 'Mot hoac nhieu ghe khong hop le cho phong chieu nay.',
+                        'seat_names' => 'Một hoặc nhiều ghế không hợp lệ cho phòng chiếu này.',
                     ]);
                 }
 
@@ -184,7 +184,7 @@ class BookingController extends Controller
 
                 if ($alreadyBooked) {
                     throw ValidationException::withMessages([
-                        'seat_names' => 'Mot hoac nhieu ghe vua duoc nguoi khac dat. Vui long chon lai.',
+                        'seat_names' => 'Một hoặc nhiều ghế vừa được người khác đặt. Vui lòng chọn lại.',
                     ]);
                 }
 
@@ -286,8 +286,8 @@ class BookingController extends Controller
 
             return response()->json([
                 'message' => $emailDelivered
-                    ? 'Thanh toan thanh cong. Ve da duoc gui toi email nhan ve cua ban.'
-                    : 'Thanh toan thanh cong. Ve da duoc luu vao tai khoan cua ban.',
+                    ? 'Thanh toán thành công. Vé đã được gửi tới email nhận vé của bạn.'
+                    : 'Thanh toán thành công. Vé đã được lưu vào tài khoản của bạn.',
                 'redirect_url' => route('account.index', ['tab' => 'tickets']),
                 'ticket' => $result,
                 'ticket_email' => $result['email'],
@@ -343,7 +343,7 @@ class BookingController extends Controller
             ]);
 
             return response()->json([
-                'message' => 'Thanh toan chua hoan tat. Vui long thu lai.',
+                'message' => 'Thanh toán chưa hoàn tất, vui lòng thử lại.',
             ], 500);
         }
     }
@@ -387,25 +387,25 @@ class BookingController extends Controller
 
         if (!$voucher) {
             throw ValidationException::withMessages([
-                'voucher_code' => 'Voucher khong ton tai hoac dang bi tat.',
+                'voucher_code' => 'Voucher không tồn tại hoặc đang bị tắt.',
             ]);
         }
 
         if ($voucher->starts_at && Carbon::parse($voucher->starts_at)->isFuture()) {
             throw ValidationException::withMessages([
-                'voucher_code' => 'Voucher chua den thoi gian ap dung.',
+                'voucher_code' => 'Voucher chưa đến thời gian áp dụng.',
             ]);
         }
 
         if ($voucher->expires_at && Carbon::parse($voucher->expires_at)->isPast()) {
             throw ValidationException::withMessages([
-                'voucher_code' => 'Voucher da het han.',
+                'voucher_code' => 'Voucher đã hết hạn.',
             ]);
         }
 
         if (!is_null($voucher->usage_limit) && (int) $voucher->used_count >= (int) $voucher->usage_limit) {
             throw ValidationException::withMessages([
-                'voucher_code' => 'Voucher da het luot su dung.',
+                'voucher_code' => 'Voucher đã hết lượt sử dụng.',
             ]);
         }
 
@@ -522,19 +522,19 @@ class BookingController extends Controller
             $ticketEmail = DB::table('tickets')->where('id', $ticketId)->value('email');
 
             $successMessage = $emailDelivered && filled($ticketEmail)
-                ? 'Thanh toan thanh cong! Ve da duoc gui toi ' . $ticketEmail . '.'
-                : 'Thanh toan thanh cong!';
+                ? 'Thanh toán thành công! Vé đã được gửi tới ' . $ticketEmail . '.'
+                : 'Thanh toán thành công';
 
-            return redirect()->route('account.index', ['tab' => 'tickets'])->with('success', $successMessage);
+            return redirect()->route('account.index', ['tab' => 'tickets'])->with('payment_success', $successMessage);
         }
 
         $showtimeId = DB::table('tickets')->where('id', $ticketId)->value('showtime_id');
 
         if ($showtimeId) {
-            return redirect()->route('booking.show', ['id' => $showtimeId])->with('error', 'Thanh toan that bai!');
+            return redirect()->route('booking.show', ['id' => $showtimeId])->with('payment_error', 'Thanh toán thất bại!');
         }
 
-        return redirect()->route('account.index', ['tab' => 'tickets'])->with('error', 'Thanh toan that bai!');
+        return redirect()->route('account.index', ['tab' => 'tickets'])->with('payment_error', 'Thanh toán thất bại');
     }
 
     protected function sendTicketConfirmationEmail(int $ticketId, string $paymentMethod): bool

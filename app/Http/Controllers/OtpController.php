@@ -18,7 +18,7 @@ class OtpController extends Controller
         $email = Session::get('verify_email');
 
         if (!$email || !Cache::has('register_data_' . $email)) {
-             return redirect()->route('register')->with('error', 'Phiên đăng ký đã hết hạn hoặc không tồn tại, sếp đăng ký lại từ đầu nha.');
+             return redirect()->route('register')->with('error', 'Phiên đăng ký đã hết hạn hoặc không tồn tại. Vui lòng đăng ký lại.');
         }
 
         $userData = Cache::get('register_data_' . $email);
@@ -58,7 +58,7 @@ class OtpController extends Controller
         $email = Session::get('verify_email');
 
         if (!$email) {
-            return redirect()->route('register')->with('error', 'Không tìm thấy phiên xác thực. Bạn vui lòng đăng ký lại nha!');
+            return redirect()->route('register')->with('error', 'Không tìm thấy phiên xác thực. Vui lòng đăng ký lại.');
         }
 
         // Lấy thông tin khách hàng từ Cache
@@ -84,13 +84,13 @@ class OtpController extends Controller
 
             // Hiện thông báo mừng rỡ
             return redirect()->to($user->admin_role ? route('admin.dashboard') : route('home'))
-                ->with('success', 'Tuyệt vời ông mặt trời! Đăng ký & Xác thực thành công rực rỡ! 🎉');
+                ->with('success', 'Đăng ký và xác thực thành công.');
         }
 
         // Khôi phục lại session verify_email để họ nhập lại cho tiện
         Session::put('verify_email', $email);
 
         // Sai thì bắt nhập lại
-        return back()->with('error', 'Mã OTP trật lất rồi bạn ơi! Kiểm tra lại email nha! 😅');
+        return back()->with('error', 'Mã OTP không chính xác. Vui lòng kiểm tra lại.');
     }
 }

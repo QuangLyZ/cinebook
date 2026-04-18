@@ -5,13 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'CineBook') }}</title>
+    <title>@yield('title', 'CineBook - Đặt vé xem phim nhanh chóng')</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SweetAlert2 cho Popup -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -191,5 +198,90 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 </script>
+
+<!-- Toast Notification cho các thông báo Thành công & Lỗi thông thường (Đăng nhập, thêm phim...) -->
+@if(session('success') || session('error'))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            background: '#1f2937',
+            color: '#fff',
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+
+        @if(session('success'))
+        Toast.fire({
+            icon: 'success',
+            title: `{!! session('success') !!}`
+        });
+        @endif
+
+        @if(session('error'))
+        Toast.fire({
+            icon: 'error',
+            title: `{!! session('error') !!}`
+        });
+        @endif
+    });
+</script>
+@endif
+
+@if(session('payment_success') || session('payment_error'))
+<!-- Custom Payment Popup -->
+<div id="paymentPopup" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-300">
+    <div class="bg-[#1a1d24] rounded-2xl shadow-2xl border border-gray-700/50 w-full max-w-sm p-8 text-center relative transform scale-100 transition-transform duration-300">
+        <!-- Close Button -->
+        <button onclick="document.getElementById('paymentPopup').remove()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        @if(session('payment_success'))
+            <!-- Success Icon -->
+            <div class="mx-auto w-16 h-16 bg-[#10b981] rounded-full flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
+                <i class="fa-solid fa-check text-white text-3xl"></i>
+            </div>
+            
+            <p class="text-[#10b981] text-xs font-bold tracking-[0.2em] uppercase mb-2">Payment Success</p>
+            <h3 class="text-white text-2xl font-bold mb-3">Thanh toán thành công</h3>
+            <p class="text-gray-400 text-sm mb-8 leading-relaxed px-4">{!! session('payment_success') !!}</p>
+            
+            <a href="{{ route('account.index', ['tab' => 'tickets']) }}" onclick="document.getElementById('paymentPopup').remove()" class="inline-block bg-[#10b981] hover:bg-[#059669] text-white font-medium px-8 py-2.5 rounded-full transition-colors shadow-[0_4px_14px_0_rgba(16,185,129,0.39)]">
+                Xem vé của tôi
+            </a>
+        @else
+            <!-- Error Icon -->
+            <div class="mx-auto w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(239,68,68,0.4)]">
+                <i class="fa-solid fa-xmark text-white text-3xl"></i>
+            </div>
+            
+            <p class="text-red-500 text-xs font-bold tracking-[0.2em] uppercase mb-2">Payment Failed</p>
+            <h3 class="text-white text-2xl font-bold mb-3">Thanh toán thất bại</h3>
+            <p class="text-gray-400 text-sm mb-8 leading-relaxed px-4">{!! session('payment_error') !!}</p>
+            
+            <button onclick="document.getElementById('paymentPopup').remove()" class="bg-red-500 hover:bg-red-600 text-white font-medium px-8 py-2.5 rounded-full transition-colors shadow-[0_4px_14px_0_rgba(239,68,68,0.39)]">
+                Thử lại
+            </button>
+        @endif
+    </div>
+</div>
+
+<script>
+    // Click outside to close
+    document.getElementById('paymentPopup').addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.remove();
+        }
+    });
+</script>
+@endif
+
 </body>
 </html>
