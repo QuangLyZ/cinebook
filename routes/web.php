@@ -46,9 +46,7 @@ Route::get('/movies/suggestions', [MovieController::class, 'suggestions'])->name
 Route::get('/movies', [MovieController::class, 'list'])->name('movies.index');
 
 // Cinemas
-Route::get('/cinemas', function () {
-    return view('theaters');
-})->name('cinemas.index');
+Route::get('/cinemas', [CinemaController::class, 'theaters'])->name('cinemas.index');
 Route::get('/cinemas/{id}', [CinemaController::class, 'show'])->name('cinemas.show');
 
 // Booking
