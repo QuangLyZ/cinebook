@@ -38,10 +38,20 @@
                 </div>
                 
                 <div class="flex items-center space-x-4">
-                    <!-- Search Icon (Mock) -->
-                    <button class="text-gray-400 hover:text-white transition-colors">
+                    <!-- Search Form with Suggestions -->
+                    <div class="hidden md:block relative z-50">
+                        <form action="{{ route('movies.index') }}" method="GET" class="flex relative items-center">
+                            <input type="text" name="q" id="globalSearchInput" placeholder="Tìm kiếm phim, rạp..." autocomplete="off" class="bg-gray-800 border border-gray-700 rounded-full pl-4 pr-10 py-1.5 text-sm text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 w-48 transition-all duration-300 focus:w-64">
+                            <button type="submit" class="absolute right-3 text-gray-400 hover:text-white transition-colors">
+                                <i class="fa-solid fa-search"></i>
+                            </button>
+                        </form>
+                        <!-- Suggestions Dropdown -->
+                        <div id="searchSuggestions" class="absolute top-full right-0 mt-2 w-64 bg-gray-800 border border-gray-700 rounded-lg shadow-xl overflow-hidden hidden"></div>
+                    </div>
+                    <a href="{{ route('movies.index') }}" class="md:hidden text-gray-400 hover:text-white transition-colors">
                         <i class="fa-solid fa-search"></i>
-                    </button>
+                    </a>
 
                     @guest
                         <a href="/login" class="text-gray-300 hover:text-white px-3 py-2 font-medium transition-colors">Đăng Nhập</a>
@@ -129,5 +139,57 @@
             </div>
         </div>
     </footer>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const searchInput = document.getElementById('globalSearchInput');
+    const searchSuggestions = document.getElementById('searchSuggestions');
+    let searchTimeout;
+
+    if (searchInput && searchSuggestions) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const q = this.value.trim();
+            
+            if (q.length < 1) {
+                searchSuggestions.classList.add('hidden');
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                fetch(`/movies/suggestions?q=${encodeURIComponent(q)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.length > 0) {
+                            searchSuggestions.innerHTML = data.map(movie => `
+                                <a href="/movies?q=${encodeURIComponent(movie.name)}" class="block px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors border-b border-gray-700/50 last:border-0 truncate" title="${movie.name}">
+                                    <i class="fa-solid fa-film mr-2 text-gray-500"></i> ${movie.name}
+                                </a>
+                            `).join('');
+                            searchSuggestions.classList.remove('hidden');
+                        } else {
+                            searchSuggestions.innerHTML = `<div class="px-4 py-3 text-sm text-gray-500 italic text-center">Không tìm thấy phim phù hợp</div>`;
+                            searchSuggestions.classList.remove('hidden');
+                        }
+                    })
+                    .catch(err => console.error("Search error:", err));
+            }, 300);
+        });
+
+        // Hide when clicked outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+                searchSuggestions.classList.add('hidden');
+            }
+        });
+
+        // Reopen when focused
+        searchInput.addEventListener('focus', function() {
+            if (this.value.trim().length >= 1 && searchSuggestions.innerHTML.trim() !== '') {
+                searchSuggestions.classList.remove('hidden');
+            }
+        });
+    }
+});
+</script>
 </body>
 </html>

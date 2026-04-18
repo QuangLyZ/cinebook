@@ -42,6 +42,7 @@ Route::get('/forgot-password', function () {
 })->name('forgot-password');
 
 // Movies
+Route::get('/movies/suggestions', [MovieController::class, 'suggestions'])->name('movies.suggestions');
 Route::get('/movies', [MovieController::class, 'list'])->name('movies.index');
 
 // Cinemas

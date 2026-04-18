@@ -12,7 +12,7 @@
         <div class="flex flex-col md:flex-row gap-4 bg-gray-800 p-4 rounded-xl border border-gray-700">
             <div class="flex-1 relative">
                 <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
-                <input type="text" id="movieSearch" placeholder="Tìm tên phim, thể loại..."
+                <input type="text" id="movieSearch" placeholder="Tìm tên phim, rạp, độ tuổi (T18, T13)..."
                     onkeyup="applyClientFilters()"
                     class="block w-full pl-10 pr-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none">
             </div>
@@ -108,10 +108,16 @@
 
             <div id="movieList" class="space-y-6">
                 @forelse($movies ?? [] as $movie)
+                @php
+                    $cinemaNames = isset($movie->showtimes) ? collect($movie->showtimes)->pluck('cinema_name')->unique()->join(' ') : '';
+                    $ageLabel = $movie->age_limit ? 't' . $movie->age_limit : 'p';
+                @endphp
                 <div
                     class="movie-item flex flex-col md:flex-row bg-gray-800 rounded-xl border border-gray-700 overflow-hidden hover:border-red-500/40 hover:shadow-lg hover:shadow-red-500/5 transition-all"
-                    data-name="{{ strtolower($movie->name) }}"
-                    data-genre="{{ strtolower($movie->genre ?? '') }}"
+                    data-name="{{ mb_strtolower($movie->name, 'UTF-8') }}"
+                    data-genre="{{ mb_strtolower($movie->genre ?? '', 'UTF-8') }}"
+                    data-age="{{ mb_strtolower($ageLabel, 'UTF-8') }}"
+                    data-cinemas="{{ mb_strtolower($cinemaNames, 'UTF-8') }}"
                 >
                     {{-- Poster --}}
                     <div class="w-full md:w-44 h-64 md:h-auto flex-shrink-0 overflow-hidden">
@@ -197,6 +203,18 @@
 </style>
 
 <script>
+document.addEventListener("DOMContentLoaded", function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const q = urlParams.get('q');
+    if (q) {
+        const searchInput = document.getElementById('movieSearch');
+        if (searchInput) {
+            searchInput.value = q;
+            applyClientFilters();
+        }
+    }
+});
+
 function applyClientFilters() {
     const search = document.getElementById('movieSearch').value.toLowerCase().trim();
     const genre  = document.getElementById('genreFilter').value.toLowerCase();
@@ -204,10 +222,17 @@ function applyClientFilters() {
     let visible  = 0;
 
     items.forEach(item => {
-        const name         = item.dataset.name;
-        const itemGenre    = item.dataset.genre;
+        const name         = item.dataset.name || '';
+        const itemGenre    = item.dataset.genre || '';
+        const age          = item.dataset.age || '';
+        const cinemas      = item.dataset.cinemas || '';
 
-        const matchSearch = !search || name.includes(search);
+        const matchSearch = !search || 
+                            name.includes(search) || 
+                            itemGenre.includes(search) ||
+                            age.includes(search) ||
+                            cinemas.includes(search);
+
         const matchGenre  = !genre || itemGenre.includes(genre);
 
         if (matchSearch && matchGenre) {
