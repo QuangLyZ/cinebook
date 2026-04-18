@@ -38,7 +38,7 @@ class DatabaseSeeder extends Seeder
             [
                 'genre' => 'Hành Động, Viễn Tưởng',
                 'duration' => 150,
-                'release_date' => now()->subDays(5),
+                'release_date' => now(),
                 'director' => 'Joe Russo, Anthony Russo',
                 'description' => 'Siêu anh hùng phải hợp lực để đối đầu với mối đe doạ xuyên vũ trụ.',
                 'poster' => '/images/pic1.jpg',
@@ -53,7 +53,7 @@ class DatabaseSeeder extends Seeder
             [
                 'genre' => 'Hành Động, Giật Gân',
                 'duration' => 152,
-                'release_date' => now()->subMonths(7),
+                'release_date' => now(),
                 'director' => 'Christopher Nolan',
                 'description' => 'Batman đối đầu với Joker trong một trận chiến tâm lý đầy kịch tính.',
                 'poster' => '/images/batmanpic.jpg',
@@ -68,7 +68,7 @@ class DatabaseSeeder extends Seeder
             [
                 'genre' => 'Hành Động, Phiêu Lưu',
                 'duration' => 148,
-                'release_date' => now()->subMonths(2),
+                'release_date' => now(),
                 'director' => 'Jon Watts',
                 'description' => 'Peter Parker phải đối mặt với hậu quả khi danh tính bị bại lộ.',
                 'poster' => '/images/pic3nowayhome.jpg',
@@ -83,7 +83,7 @@ class DatabaseSeeder extends Seeder
             [
                 'genre' => 'Khoa Học Viễn Tưởng, Phiêu Lưu',
                 'duration' => 165,
-                'release_date' => now()->subWeeks(1),
+                'release_date' => now(),
                 'director' => 'Denis Villeneuve',
                 'description' => 'Hành trình của Paul Atreides tiếp tục trong sa mạc hành tinh Arrakis.',
                 'poster' => '/images/pic2dune.jpg',
@@ -210,30 +210,30 @@ class DatabaseSeeder extends Seeder
         // Lịch chiếu theo phim ngày → rạp → giờ
         $schedule = [
             'Avengers: Secret Wars' => [
-                '2026-04-15' => [
+                '2026-04-19' => [
                     'CineBook Landmark 81'  => ['09:00', '12:00', '15:30', '19:00', '22:00'],
                     'CineBook Aeon Tân Phú' => ['11:00', '14:30', '18:00', '21:30'],
                     'CineBook Sư Vạn Hạnh' => ['10:00', '13:30', '17:00', '20:30'],
                 ],
-                '2026-04-16' => [
+                '2026-04-20' => [
                     'CineBook Aeon Tân Phú' => ['11:00', '14:30', '18:00', '21:30'],
                     'CineBook Quận 7' => ['10:00', '13:30', '17:00', '20:30'],
                 ],
             ],
 
             'The Dark Knight' => [
-                '2026-04-16' => [
+                '2026-04-19' => [
                     'CineBook Landmark 81'  => ['08:30', '11:30', '14:30', '18:00', '21:00'],
                     'CineBook Thủ Đức'  => ['08:30', '11:30', '14:30', '18:00', '21:00'],
                 ],
-                '2026-04-17' => [
+                '2026-04-20' => [
                     'CineBook Giga Mall'    => ['09:30', '13:00', '16:30', '20:00'],
                     'CineBook Quận 7'    => ['09:30', '13:00', '16:30', '20:00'],
                     
                 ],
             ],
             'Spider-Man: No Way Home' => [
-                '2026-04-17' => [
+                '2026-04-21' => [
                     'CineBook Aeon Tân Phú'  => ['08:30', '11:30', '14:30', '18:00', '21:00'],
                     'CineBook Quận 7'  => ['08:30', '11:30', '14:30', '18:00', '21:00'],
                 ],
