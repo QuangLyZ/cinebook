@@ -87,7 +87,7 @@ class MovieController extends Controller
         $cinemas = collect();
         $movies = collect();
         $availableDates = collect();
-        $selectedDate = Carbon::today()->toDateString();
+    $selectedDate = Carbon::today()->toDateString();
         $selectedCinemaId = $request->integer('cinema') ?: null;
         $selectedCinema = null;
         $dbWarning = null;
@@ -126,7 +126,8 @@ class MovieController extends Controller
                 ->join('cinemas as cinemas', 'cinemas.id', '=', 'rooms.cinema_id')
                 ->leftJoin('subtitles as subtitles', 'subtitles.id', '=', 'showtimes.subtitle_id')
                 ->leftJoin('ratings as ratings', 'ratings.movie_id', '=', 'movies.id')
-                ->whereDate('showtimes.start_time', $selectedDate)
+                // If selectedDate is the special value 'all' then do not filter by date
+                ->when($selectedDate !== 'all', fn ($query) => $query->whereDate('showtimes.start_time', $selectedDate))
                 ->when($selectedCinemaId, fn ($query) => $query->where('cinemas.id', $selectedCinemaId))
                 ->groupBy([
                     'movies.id',
@@ -267,6 +268,11 @@ class MovieController extends Controller
 
     private function resolveSelectedDate(?string $requestedDate, Collection $availableDates): string
     {
+        // Support special value 'all' which means do not filter by date
+        if ($requestedDate === 'all') {
+            return 'all';
+        }
+
         if ($requestedDate) {
             try {
                 $parsedDate = Carbon::parse($requestedDate)->toDateString();
