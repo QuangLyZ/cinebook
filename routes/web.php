@@ -133,10 +133,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         $request->validate(['reply_message' => 'required|string']);
 
         if ($feedback->user && $feedback->user->email) {
-            \Illuminate\Support\Facades\Mail::to($feedback->user->email)->send(
-                new \App\Mail\FeedbackReplyMail($feedback->title, $request->reply_message)
-            );
-            return back()->with('success', 'Đã gửi email phản hồi thành công đến ' . $feedback->user->email);
+            try {
+                \Illuminate\Support\Facades\Mail::to($feedback->user->email)->send(
+                    new \App\Mail\FeedbackReplyMail($feedback->title, $request->reply_message)
+                );
+                return back()->with('success', 'Đã gửi email phản hồi thành công đến ' . $feedback->user->email);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Mail Error: ' . $e->getMessage());
+                return back()->with('error', 'Lỗi gửi email: ' . $e->getMessage());
+            }
         }
 
         return back()->with('error', 'Người dùng này không có địa chỉ email hợp lệ.');
