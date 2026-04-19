@@ -18,13 +18,11 @@ public function uploadImage(Request $request)
             'upload' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048'
         ]);
 
-        // đổi tên file (tránh lỗi tiếng Việt)
         $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
 
         // lưu file
         $path = $file->storeAs('uploads', $filename, 'public');
 
-        // ✅ QUAN TRỌNG: format đúng cho CKEditor
         return response()->json([
             "uploaded" => 1,
             "fileName" => $filename,
@@ -42,6 +40,9 @@ public function uploadImage(Request $request)
     public function list()
     {
     $posts = Post::orderBy('publish_at', 'desc')->get();
+    $posts = Post::where('status', 'visible')
+            ->orderBy('publish_at', 'desc')
+            ->get();
     return view('post.index', compact('posts'));
     }
     public function detail($slug)
@@ -60,26 +61,82 @@ public function uploadImage(Request $request)
         ]);
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
+public function store(Request $request)
+{
+    $request->validate([
         'title' => 'required',
         'content' => 'required',
-        'publish_at' => 'required'
+        'publish_at' => 'nullable'
     ]);
-      $post = Post::create([
+
+    Post::create([
         'title' => $request->title,
         'keywords' => $request->keywords,
         'content' => $request->content,
+        'thumbnail' => $request->thumbnail,
         'publish_at' => $request->publish_at,
-        'status' => 'published'
+
+        // 👉 QUAN TRỌNG: dùng visible
+        'status' => 'visible'
     ]);
 
+    return redirect()->back()->with('success', 'Đăng bài thành công!');
+}
+public function edit($id)
+{
+    $post = Post::findOrFail($id);
+    $posts = Post::paginate(10); // thêm dòng này
 
-        $data['status'] = $request->publish_at ? 'scheduled' : 'published';
-        
-        Post::create($data);
+    return view('admin.posts.edit', compact('post', 'posts'));
+}
 
-        return redirect()->back()->with('success', 'Đăng bài thành công!');
+public function update(Request $request, $id)
+{
+    $post = Post::findOrFail($id);
+
+    $post->update([
+        'title' => $request->title,
+        'keywords' => $request->keywords,
+        'content' => $request->content,
+        'thumbnail' => $request->thumbnail,
+        'publish_at' => $request->publish_at,
+    ]);
+
+    return redirect()->route('admin.posts.index')
+        ->with('success', 'Cập nhật thành công');
+}
+public function destroy($id)
+{
+    $post = Post::findOrFail($id);
+
+    if ($post->thumbnail) {
+        try {
+            $publicId = pathinfo($post->thumbnail, PATHINFO_FILENAME);
+            Cloudinary::destroy($publicId);
+        } catch (\Exception $e) {}
     }
+
+    $post->delete();
+
+    return back()->with('success', 'Xóa bài viết thành công!');
+}
+public function show($id)
+{
+    $post = \App\Models\Post::findOrFail($id);
+    return view('admin.posts.show', compact('post'));
+}
+public function toggle($id)
+{
+    $post = Post::findOrFail($id);
+
+    if ($post->status == 'hidden') {
+        $post->status = 'visible';
+    } else {
+        $post->status = 'hidden';
+    }
+
+    $post->save();
+
+    return back()->with('success', 'Cập nhật thành công');
+}
 }

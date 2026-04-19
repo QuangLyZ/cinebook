@@ -65,8 +65,10 @@ class MovieController extends Controller
                 ->published()
                 ->orderByDesc('publish_at')
                 ->orderByDesc('created_at')
-                ->limit(3)
+                
                 ->get();
+                $comingPosts = $posts->take(4);
+                $newsPosts   = $posts->skip(1)->take(3);
         } catch (QueryException $exception) {
             Log::warning('Home page movie query failed.', [
                 'message' => $exception->getMessage(),
@@ -75,7 +77,7 @@ class MovieController extends Controller
             $dbWarning = 'Không thể tải dữ liệu phim từ database. Kiểm tra lại kết nối PostgreSQL/Supabase trong .env.';
         }
 
-        return view('home', compact('movies', 'nowShowing', 'comingSoon', 'featuredMovie', 'posts', 'dbWarning'));
+        return view('home', compact('movies', 'nowShowing', 'comingSoon', 'featuredMovie', 'comingPosts', 'newsPosts', 'dbWarning'));
     }
 
     public function show($id)
