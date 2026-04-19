@@ -11,7 +11,7 @@
                 <i class="fa-solid fa-chevron-left text-2xl"></i>
             </a>
             <div>
-                <h2 class="text-2xl font-extrabold tracking-tight text-white">Danh sách Khách Hàng</h2>
+                <h2 class="text-2xl font-extrabold tracking-tight text-white">Danh sách người dùng</h2>
                 <p class="mt-1 text-sm text-gray-400">Quản lý và phân tích hành vi của người dùng hệ thống.</p>
             </div>
         </div>
@@ -24,6 +24,7 @@
                     <tr>
                         <th class="px-6 py-4 font-semibold tracking-wider">Khách hàng</th>
                         <th class="px-6 py-4 font-semibold tracking-wider text-center">Liên hệ</th>
+                        <th class="px-6 py-4 font-semibold tracking-wider text-center">Phân quyền</th>
                         <th class="px-6 py-4 font-semibold tracking-wider text-center">Sở thích Thể loại</th>
                         <th class="px-6 py-4 font-semibold tracking-wider text-center">Khung giờ hay xem</th>
                         <th class="px-6 py-4 font-semibold tracking-wider text-right">Tổng chi tiêu</th>
@@ -46,6 +47,16 @@
                             <td class="px-6 py-4 text-center">
                                 <div class="text-gray-300">{{ $user->email ?? 'N/A' }}</div>
                                 <div class="text-xs text-gray-500 mt-0.5">{{ $user->phone ?? 'N/A' }}</div>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <form action="{{ route('admin.users.update', $user->id) }}" method="POST">
+                                    @csrf
+                                    @method('PUT')
+                                    <select name="admin_role" onchange="this.form.submit()" class="rounded-lg bg-gray-800 text-xs font-semibold {{ $user->admin_role ? 'text-purple-400' : 'text-gray-300' }} border border-gray-700 hover:bg-gray-700 focus:ring-1 focus:ring-purple-500 outline-none p-2 cursor-pointer transition-colors shadow-sm">
+                                        <option value="1" {{ $user->admin_role ? 'selected' : '' }}>Quản trị viên</option>
+                                        <option value="0" {{ !$user->admin_role ? 'selected' : '' }}>Khách hàng</option>
+                                    </select>
+                                </form>
                             </td>
                             <td class="px-6 py-4 text-center">
                                 @if($user->favorite_genre !== 'Chưa có dữ liệu')
@@ -75,7 +86,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
                                 <div class="flex flex-col items-center">
                                     <i class="fa-solid fa-users text-4xl mb-3 text-gray-700"></i>
                                     <p>Chưa có dữ liệu người dùng.</p>

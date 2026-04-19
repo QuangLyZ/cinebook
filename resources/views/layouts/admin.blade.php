@@ -59,8 +59,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <body class="min-h-screen bg-gray-950 text-gray-100">
     <div class="min-h-screen lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
-        <aside class="hidden border-r border-gray-800 bg-gray-950 lg:flex lg:flex-col">
-            <div class="border-b border-gray-800 px-7 py-6">
+        <aside class="hidden sticky top-0 h-screen overflow-y-auto border-r border-gray-800 bg-gray-950 lg:flex lg:flex-col">
+            <div class="flex h-[77px] shrink-0 items-center border-b border-gray-800 px-7">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3">
                     <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-red-600 text-white shadow-lg shadow-red-900/30">
                         <i class="fa-solid fa-film text-lg"></i>
@@ -115,7 +115,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(220,38,38,0.18),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(239,68,68,0.12),transparent_30%)]"></div>
 
             <header class="sticky top-0 z-30 border-b border-gray-800 bg-gray-950/85 backdrop-blur-md">
-                <div class="flex items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+                <div class="flex h-[76px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
                     <div class="flex items-center gap-3">
                         <a href="{{ route('admin.dashboard') }}" class="flex h-11 w-11 items-center justify-center rounded-2xl bg-red-600 text-white shadow-lg shadow-red-900/30 lg:hidden">
                             <i class="fa-solid fa-film"></i>

@@ -62,4 +62,16 @@ class UserController extends Controller
             'pageTitle' => 'Quản lý Khách Hàng'
         ]);
     }
+
+    public function update(Request $request, User $user)
+    {
+        $request->validate([
+            'admin_role' => 'required|boolean',
+        ]);
+
+        $user->admin_role = $request->boolean('admin_role');
+        $user->save();
+
+        return redirect()->route('admin.users.index')->with('success', 'Đã cập nhật quyền truy cập cho ' . ($user->name ?? $user->username ?? 'người dùng'));
+    }
 }
