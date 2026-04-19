@@ -64,18 +64,68 @@
                         <a href="/login" class="text-gray-300 hover:text-white px-3 py-2 font-medium transition-colors">Đăng Nhập</a>
                         <a href="/register" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium shadow transition-colors">Đăng Ký</a>
                     @else
-                        <div class="relative flex items-center gap-3">
-                            <a href="{{ route('account.index') }}" class="hidden rounded-lg border border-gray-700 px-3 py-2 text-sm font-medium text-gray-300 transition-colors hover:border-gray-600 hover:text-white md:inline-flex">
-                                Tài khoản
-                            </a>
-                            <span class="text-sm font-medium">{{ Auth::user()->name ?? 'User' }}</span>
-                            <!-- For simplicity in UI mock, logout form is omitted -->
-                            <form action="{{ route('logout') }}" method="POST" class="inline">
-                                @csrf
-                                <button type="submit" class="text-gray-400 hover:text-red-500 transition-colors" title="Đăng Xuất">
-                                    <i class="fa-solid fa-sign-out-alt"></i>
+                        <div class="relative flex items-center gap-5">
+                            <!-- Notification Bell -->
+                            <button class="relative text-gray-400 hover:text-white transition-colors">
+                                <i class="fa-regular fa-bell text-[1.1rem]"></i>
+                                <span class="absolute top-0 right-0 block h-2 w-2 rounded-full border-2 border-gray-900 bg-red-500"></span>
+                            </button>
+
+                            <!-- User Dropdown (Hover based) -->
+                            <div class="relative group h-full flex items-center">
+                                <button class="flex items-center gap-2.5 text-sm font-medium text-gray-200 hover:text-white transition-colors cursor-pointer py-2">
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-red-700 text-white font-bold text-xs shadow-md">
+                                        {{ mb_strtoupper(mb_substr(Auth::user()->fullname ?? Auth::user()->name ?? 'U', 0, 1, 'UTF-8'), 'UTF-8') }}
+                                    </div>
+                                    <span class="max-w-[120px] truncate">{{ Auth::user()->fullname ?? Auth::user()->name ?? 'User' }}</span>
+                                    <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 group-hover:text-white transition-transform duration-300 group-hover:rotate-180"></i>
                                 </button>
-                            </form>
+
+                                <!-- Invisible bridge for hover -->
+                                <div class="absolute top-[100%] right-0 h-4 w-full"></div>
+
+                                <!-- Dropdown Menu -->
+                                <div class="absolute right-0 top-[calc(100%+0.5rem)] w-56 origin-top-right rounded-2xl border border-gray-800 bg-gray-900/95 backdrop-blur-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 transform group-hover:translate-y-0 translate-y-2">
+                                    <div class="p-2">
+                                        <div class="px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                                            Quản lý
+                                        </div>
+                                        <a href="{{ route('account.index', ['tab' => 'profile']) }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition-colors">
+                                            <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-800 text-gray-400">
+                                                <i class="fa-solid fa-gear"></i>
+                                            </div>
+                                            Cài đặt tài khoản
+                                        </a>
+                                        <a href="{{ route('account.index', ['tab' => 'tickets']) }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition-colors">
+                                            <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-800 text-gray-400">
+                                                <i class="fa-solid fa-ticket"></i>
+                                            </div>
+                                            Vé của tôi
+                                        </a>
+                                        
+                                        @if(Auth::user()->admin_role)
+                                        <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-emerald-400 transition-colors">
+                                            <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-800 text-gray-400">
+                                                <i class="fa-solid fa-chart-line"></i>
+                                            </div>
+                                            Trang Quản trị
+                                        </a>
+                                        @endif
+
+                                        <div class="my-1.5 border-t border-gray-800"></div>
+
+                                        <form action="{{ route('logout') }}" method="POST" class="block m-0">
+                                            @csrf
+                                            <button type="submit" class="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors">
+                                                <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-red-500/10">
+                                                    <i class="fa-solid fa-right-from-bracket"></i>
+                                                </div>
+                                                Đăng xuất
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     @endguest
                 </div>

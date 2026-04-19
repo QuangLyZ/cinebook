@@ -45,11 +45,12 @@
     <section class="mx-auto mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
         @php
             $tabs = [
+                'profile' => ['label' => 'Thông tin tài khoản', 'icon' => 'fa-user'],
                 'tickets' => ['label' => 'Vé của tôi', 'icon' => 'fa-ticket'],
                 'vouchers' => ['label' => 'Voucher khả dụng', 'icon' => 'fa-tags'],
                 'usage' => ['label' => 'Lịch sử dùng voucher', 'icon' => 'fa-clock-rotate-left'],
             ];
-            $activeTab = in_array($accountTab, array_keys($tabs), true) ? $accountTab : 'tickets';
+            $activeTab = in_array($accountTab, array_keys($tabs), true) ? $accountTab : 'profile';
         @endphp
 
         <div class="mb-6 flex flex-wrap gap-3">
@@ -64,7 +65,96 @@
             @endforeach
         </div>
 
-        @if ($activeTab === 'tickets')
+        @if ($activeTab === 'profile')
+            <div class="grid gap-8 lg:grid-cols-2">
+                <!-- Thông tin cá nhân -->
+                <div class="rounded-[2rem] border border-gray-800 bg-gray-900/80 shadow-lg shadow-black/10">
+                    <div class="border-b border-gray-800 px-6 py-5">
+                        <div class="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">Personal Info</div>
+                        <h2 class="mt-2 text-2xl font-extrabold tracking-tight text-white">Thông tin cá nhân</h2>
+                    </div>
+                    <div class="p-6">
+                        <form action="{{ route('account.profile.update') }}" method="POST" class="space-y-5">
+                            @csrf
+                            <div>
+                                <label for="fullname" class="block text-sm font-medium text-gray-400 mb-1">Họ tên <span class="text-red-500">*</span></label>
+                                <input type="text" id="fullname" name="fullname" value="{{ old('fullname', auth()->user()->fullname ?? auth()->user()->name) }}" required class="w-full rounded-xl border {{ $errors->has('fullname') ? 'border-red-500' : 'border-gray-700' }} bg-gray-950 px-4 py-3 text-white focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 transition-colors">
+                                @error('fullname') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
+                            </div>
+                            
+                            <div>
+                                <label for="username" class="block text-sm font-medium text-gray-400 mb-1">Tên đăng nhập</label>
+                                <input type="text" id="username" name="username" value="{{ old('username', auth()->user()->username) }}" class="w-full rounded-xl border border-gray-700 bg-gray-950 px-4 py-3 text-white focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 transition-colors">
+                            </div>
+
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-400 mb-1">Email <span class="text-red-500">*</span></label>
+                                <input type="email" id="email" name="email" value="{{ old('email', auth()->user()->email) }}" required class="w-full rounded-xl border {{ $errors->has('email') ? 'border-red-500' : 'border-gray-700' }} bg-gray-950 px-4 py-3 text-white focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 transition-colors">
+                                @error('email') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <label for="phone" class="block text-sm font-medium text-gray-400 mb-1">Số điện thoại</label>
+                                <input type="text" id="phone" name="phone" value="{{ old('phone', auth()->user()->phone) }}" class="w-full rounded-xl border {{ $errors->has('phone') ? 'border-red-500' : 'border-gray-700' }} bg-gray-950 px-4 py-3 text-white focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 transition-colors">
+                                @error('phone') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="pt-2">
+                                <button type="submit" class="w-full rounded-xl bg-red-600 px-4 py-3 font-bold text-white transition hover:bg-red-700 shadow-lg shadow-red-950/30">
+                                    <i class="fa-solid fa-floppy-disk mr-2"></i> Lưu thay đổi
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Đổi mật khẩu -->
+                <div class="rounded-[2rem] border border-gray-800 bg-gray-900/80 shadow-lg shadow-black/10">
+                    <div class="border-b border-gray-800 px-6 py-5">
+                        <div class="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">Security</div>
+                        <h2 class="mt-2 text-2xl font-extrabold tracking-tight text-white">Đổi mật khẩu</h2>
+                    </div>
+                    <div class="p-6 flex flex-col justify-between h-[calc(100%-80px)]">
+                        @if(Auth::user()->google_id && !Auth::user()->password)
+                        <div class="rounded-xl border border-blue-500/30 bg-blue-500/10 p-5 text-center">
+                            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/20 text-blue-400 mb-3">
+                                <i class="fa-brands fa-google text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white mb-2">Tài khoản Google</h3>
+                            <p class="text-sm text-gray-400">Bạn đang đăng nhập bằng Google nên không cần đổi mật khẩu tại đây.</p>
+                        </div>
+                        @else
+                        <form action="{{ route('account.password.update') }}" method="POST" class="space-y-5">
+                            @csrf
+                            <div>
+                                <label for="current_password" class="block text-sm font-medium text-gray-400 mb-1">Mật khẩu hiện tại <span class="text-red-500">*</span></label>
+                                <input type="password" id="current_password" name="current_password" required class="w-full rounded-xl border {{ $errors->has('current_password') ? 'border-red-500' : 'border-gray-700' }} bg-gray-950 px-4 py-3 text-white focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 transition-colors">
+                                @error('current_password') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
+                            </div>
+                            
+                            <div>
+                                <label for="new_password" class="block text-sm font-medium text-gray-400 mb-1">Mật khẩu mới <span class="text-red-500">*</span></label>
+                                <input type="password" id="new_password" name="new_password" required class="w-full rounded-xl border {{ $errors->has('new_password') ? 'border-red-500' : 'border-gray-700' }} bg-gray-950 px-4 py-3 text-white focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 transition-colors">
+                                @error('new_password') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <label for="new_password_confirmation" class="block text-sm font-medium text-gray-400 mb-1">Xác nhận mật khẩu mới <span class="text-red-500">*</span></label>
+                                <input type="password" id="new_password_confirmation" name="new_password_confirmation" required class="w-full rounded-xl border border-gray-700 bg-gray-950 px-4 py-3 text-white focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 transition-colors">
+                            </div>
+
+                            <div class="pt-2">
+                                <button type="submit" class="w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 font-bold text-white transition hover:bg-gray-700 hover:text-white">
+                                    <i class="fa-solid fa-key mr-2"></i> Đổi mật khẩu
+                                </button>
+                                <p class="mt-3 text-center text-xs text-gray-500">Mã OTP sẽ được gửi về email của bạn để xác nhận.</p>
+                            </div>
+                        </form>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @elseif ($activeTab === 'tickets')
             <div class="rounded-[2rem] border border-gray-800 bg-gray-900/80 shadow-lg shadow-black/10">
                 <div class="border-b border-gray-800 px-6 py-5">
                     <div class="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">Purchase History</div>

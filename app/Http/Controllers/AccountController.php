@@ -8,6 +8,10 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\SendOtpMail;
 
 class AccountController extends Controller
 {
@@ -161,5 +165,127 @@ class AccountController extends Controller
 
                 return $usage;
             });
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'fullname' => 'required|string|max:255',
+            'username' => 'nullable|string|max:255',
+            'email' => 'required|string|email|max:255|unique:Users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20|unique:Users,phone,' . $user->id,
+        ], [
+            'fullname.required' => 'Vui lòng nhập họ tên.',
+            'email.required' => 'Vui lòng nhập email.',
+            'email.email' => 'Email không đúng định dạng.',
+            'email.unique' => 'Email này đã được sử dụng bởi người khác.',
+            'phone.unique' => 'Số điện thoại này đã được sử dụng.',
+        ]);
+
+        $user->fullname = $request->fullname;
+        $user->username = $request->username;
+        $user->email = $request->email;
+        $user->phone = $request->phone;
+        $user->save();
+
+        return back()->with('success', 'Đã cập nhật thông tin cá nhân thành công.');
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+        ], [
+            'current_password.required' => 'Vui lòng nhập mật khẩu hiện tại.',
+            'new_password.required' => 'Vui lòng nhập mật khẩu mới.',
+            'new_password.min' => 'Mật khẩu mới phải dài ít nhất 8 ký tự.',
+            'new_password.confirmed' => 'Xác nhận mật khẩu không khớp.',
+        ]);
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'Mật khẩu hiện tại không chính xác.']);
+        }
+
+        // Tạo OTP
+        $otpCode = rand(100000, 999999);
+        $cacheKey = 'password_reset_data_' . $user->id;
+
+        Cache::put($cacheKey, [
+            'otp' => $otpCode,
+            'new_password' => Hash::make($request->new_password)
+        ], now()->addMinutes(5));
+
+        // Gửi OTP email
+        try {
+            Mail::to($user->email)->send(new SendOtpMail($otpCode, $user->fullname ?: $user->name));
+        } catch (\Exception $e) {
+            \Log::error('Lỗi gửi mail OTP đổi mật khẩu: ' . $e->getMessage());
+        }
+
+        return redirect()->route('account.password.otp')->with('success', 'Mã OTP đã được gửi vào email của bạn. Vui lòng kiểm tra để xác nhận đổi mật khẩu.');
+    }
+
+    public function showPasswordOtpForm(Request $request)
+    {
+        $user = $request->user();
+        if (!Cache::has('password_reset_data_' . $user->id)) {
+            return redirect()->route('account.index')->with('error', 'Phiên đổi mật khẩu đã hết hạn hoặc không tồn tại.');
+        }
+
+        return view('account.verify-otp');
+    }
+
+    public function verifyPasswordOtp(Request $request)
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'otp' => 'required|numeric'
+        ]);
+
+        $cacheKey = 'password_reset_data_' . $user->id;
+        $data = Cache::get($cacheKey);
+
+        if ($data && $request->otp == $data['otp']) {
+            $user->password = $data['new_password'];
+            $user->save();
+
+            Cache::forget($cacheKey);
+
+            return redirect()->route('account.index', ['tab' => 'profile'])->with('success', 'Đổi mật khẩu thành công!');
+        }
+
+        return back()->with('error', 'Mã OTP không chính xác. Vui lòng thử lại.');
+    }
+
+    public function resendPasswordOtp(Request $request)
+    {
+        $user = $request->user();
+        $cacheKey = 'password_reset_data_' . $user->id;
+
+        if (!Cache::has($cacheKey)) {
+            return redirect()->route('account.index')->with('error', 'Phiên đổi mật khẩu đã hết hạn.');
+        }
+
+        $data = Cache::get($cacheKey);
+        $newOtpCode = rand(100000, 999999);
+        $data['otp'] = $newOtpCode;
+
+        Cache::put($cacheKey, $data, now()->addMinutes(5));
+
+        try {
+            Mail::send('emails.otp', ['otp' => $newOtpCode, 'userName' => $user->fullname ?: $user->name], function ($message) use ($user) {
+                $message->to($user->email)->subject('🔒 [CINEBOOK] Mã Xác Thực OTP Đổi Mật Khẩu');
+            });
+        } catch (\Exception $e) {
+            \Log::error('Lỗi gửi mail re-OTP đổi mật khẩu: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Mã OTP mới đã được gửi lại vào email của bạn.');
     }
 }
