@@ -111,17 +111,16 @@
             <h2 class="text-3xl font-bold text-white border-l-4 border-yellow-500 pl-3">Phim Sắp Chiếu</h2>
             <a href="/movies" class="text-yellow-500 hover:text-yellow-400 font-medium">Xem tất cả</a>
         </div>
-
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-            @foreach ($comingSoon as $movie)
+           @foreach ($comingPosts as $post)
             <div class="group relative rounded-xl overflow-hidden bg-gray-800">
-                <img src="{{ $movie->poster ?? 'https://images.unsplash.com/photo-1509281373149-e957c6296406?q=80&w=400&h=600&auto=format&fit=crop' }}" class="w-full h-80 object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt="{{ $movie->name }}">
-                <div class="absolute top-3 right-3 bg-black/70 backdrop-blur-sm text-yellow-500 px-3 py-1 rounded-full text-sm font-bold border border-yellow-500/50">
-                    {{ $movie->release_date ? \Carbon\Carbon::parse($movie->release_date)->format('d.m.Y') : 'Sắp ra mắt' }}
-                </div>
+               <img alt="{{ $post->title }}" class="w-full h-80 object-cover opacity-80 group-hover:opacity-100 transition-opacity" src="{{ $post->thumbnail ?? 'https://images.unsplash.com/photo-1509281373149-e957c6296406?q=80&w=400&h=600&auto=format&fit=crop' }}">
+                
                 <div class="absolute bottom-0 w-full p-4 bg-gradient-to-t from-gray-900 to-transparent">
-                    <h3 class="text-lg font-bold text-white mb-1">{{ $movie->name }}</h3>
-                    <p class="text-gray-400 text-sm">{{ $movie->genre }}</p>
+                    <a href="{{ route('posts.show', $post->id) }}">    
+                        <h3 class="text-lg font-bold text-white mb-1">{{ $post->title }}</h3>
+                    </a>
+                        <p class="text-gray-400 text-sm">{{ $post->keywords }}</p>
                 </div>
             </div>
             @endforeach
@@ -133,16 +132,20 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
     <h2 class="text-3xl font-bold text-white mb-8 border-l-4 border-blue-500 pl-3">Tin Tức & Khuyến Mãi</h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        @forelse (($posts ?? collect()) as $post)
+        @forelse ($newsPosts as $post)
         <div class="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 hover:border-blue-500/50 transition-colors">
-            <img src="https://images.unsplash.com/photo-1485001564903-56e6ca3736d8?q=80&w=600&h=300&auto=format&fit=crop" class="w-full h-48 object-cover" alt="News Image">
+            <img src="{{ $post->thumbnail ?? 'https://via.placeholder.com/600x300?text=No+Image' }}"
+     class="w-full h-48 object-cover"
+     alt="{{ $post->title }}">
             <div class="p-6">
                 <div class="text-blue-400 text-xs font-bold uppercase mb-2">
                     {{ $post->keywords ? \Illuminate\Support\Str::limit($post->keywords, 24) : 'Khuyến Mãi' }}
                 </div>
-                <h3 class="text-xl font-bold text-white mb-3 hover:text-blue-400 cursor-pointer">
-                    {{ $post->title }}
-                </h3>
+                <a href="{{ route('posts.show', $post->id) }}">
+    <h3 class="text-xl font-bold text-white mb-3 hover:text-blue-400 cursor-pointer">
+        {{ $post->title }}
+    </h3>
+</a>
                 <p class="text-gray-400 text-sm line-clamp-3">
                     {{ \Illuminate\Support\Str::limit(strip_tags($post->content), 140) }}
                 </p>

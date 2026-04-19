@@ -6,15 +6,14 @@
 @section('content')
 @php
     $statusColors = [
-        'visible' => 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300',
-    'hidden' => 'border-gray-500/30 bg-gray-500/10 text-gray-300',
+        'published' => 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300',
+        'scheduled' => 'border-amber-500/30 bg-amber-500/10 text-amber-300',
         'draft' => 'border-gray-500/30 bg-gray-500/10 text-gray-300',
     ];
-    
     $statusLabels = [
-         'visible' => 'Hiển thị',
-    'hidden' => 'Đã ẩn',
-        'draft' => 'Đang chỉnh ',
+        'published' => 'Đã đăng',
+        'scheduled' => 'Lên lịch',
+        'draft' => 'Nháp',
     ];
 @endphp
 
@@ -47,8 +46,9 @@
     @endif
 
     <section class="grid gap-8 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-        <form id="postCreateForm" action="{{ route('admin.posts.store') }}" method="POST" class="rounded-[2rem] border border-gray-800 bg-gray-900/80 p-6 shadow-xl shadow-black/10">
-            @csrf
+        <form id="postCreateForm" action="{{ route('admin.posts.update', $post->id) }}" method="POST">
+    @csrf
+    @method('PUT')
 
             <div class="flex items-center justify-between gap-4 border-b border-gray-800 pb-5">
                 <div>
@@ -65,17 +65,17 @@
                     <div class="space-y-6">
                         <div>
                             <label for="title" class="mb-2 block text-sm font-semibold text-gray-300">Tiêu đề</label>
-                            <input id="title" type="text" name="title" value="{{ old('title') }}" placeholder="Ví dụ: Ưu đãi đặt vé cuối tuần cho sinh viên" class="w-full rounded-2xl border border-gray-700 bg-gray-950 px-4 py-3 text-white placeholder:text-gray-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
+                            <input id="title" type="text" name="title" value="{{ old('title', $post->title) }}" class="w-full rounded-2xl border border-gray-700 bg-gray-950 px-4 py-3 text-white placeholder:text-gray-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
                         </div>
 
                         <div>
                             <label for="keywords" class="mb-2 block text-sm font-semibold text-gray-300">Keywords</label>
-                            <input id="keywords" type="text" name="keywords" value="{{ old('keywords') }}" placeholder="khuyến mãi, phim mới, combo..." class="w-full rounded-2xl border border-gray-700 bg-gray-950 px-4 py-3 text-white placeholder:text-gray-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
+                            <input id="keywords" type="text" name="keywords" value="{{ old('keywords', $post->keywords) }}" class="w-full rounded-2xl border border-gray-700 bg-gray-950 px-4 py-3 text-white placeholder:text-gray-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
                         </div>
 
                         <div>
                             <label for="publish_at" class="mb-2 block text-sm font-semibold text-gray-300">Thời gian đăng</label>
-                            <input id="publish_at" type="datetime-local" name="publish_at" value="{{ old('publish_at') }}" class="w-full rounded-2xl border border-gray-700 bg-gray-950 px-4 py-3 text-white [color-scheme:dark] focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
+                            <input id="publish_at" type="datetime-local" name="publish_at" value="{{ old('publish_at', optional($post->publish_at)->format('Y-m-d\TH:i')) }}" class="w-full rounded-2xl border border-gray-700 bg-gray-950 px-4 py-3 text-white [color-scheme:dark] focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20">
                             <p class="mt-2 text-xs text-gray-500">Để trống nếu muốn đăng ngay.</p>
                         </div>
                     </div>
@@ -85,9 +85,8 @@
                             <div class="mb-2 block text-sm font-semibold text-gray-300">Thumbnail</div>
                             <div id="thumbnailDropzone" class="group relative flex min-h-[280px] cursor-pointer flex-col items-center justify-center rounded-[1.75rem] border border-dashed border-gray-700 bg-[linear-gradient(180deg,rgba(17,24,39,0.95),rgba(3,7,18,0.95))] p-5 text-center transition hover:border-red-500/60 hover:bg-gray-950">
                                 <input id="thumbnailFile" type="file" accept="image/*" class="hidden">
-                                <input id="thumbnail" type="hidden" name="thumbnail" value="{{ old('thumbnail') }}">
-
-                                <div id="thumbnailEmptyState" class="{{ old('thumbnail') ? 'hidden' : '' }}">
+                                <input id="thumbnail" type="hidden" name="thumbnail" value="{{ old('thumbnail', $post->thumbnail) }}">
+                                <div id="thumbnailEmptyState" class="{{ old('thumbnail', $post->thumbnail) ? 'hidden' : '' }}">
                                     <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-red-500/10 text-red-300">
                                         <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
                                     </div>
@@ -99,8 +98,8 @@
                                     </button>
                                 </div>
 
-                                <div id="thumbnailPreviewState" class="w-full {{ old('thumbnail') ? '' : 'hidden' }}">
-                                    <img id="thumbnailPreview" src="{{ old('thumbnail') }}" alt="Thumbnail preview" class="h-56 w-full rounded-[1.25rem] object-cover">
+                                <div id="thumbnailPreviewState" class="w-full {{ old('thumbnail', $post->thumbnail) ? '' : 'hidden' }}">
+                                    <img id="thumbnailPreview" src="{{ old('thumbnail', $post->thumbnail) }}" class="h-56 w-full rounded-[1.25rem] object-cover">
                                     <div class="mt-4 rounded-2xl border border-gray-800 bg-black/40 p-3 text-left">
                                         <div class="text-xs uppercase tracking-[0.22em] text-gray-500">Cloudinary URL</div>
                                         <div id="thumbnailUrlLabel" class="mt-2 break-all text-sm text-gray-300">{{ old('thumbnail') }}</div>
@@ -111,9 +110,9 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="mt-3">
+                             <div class="mt-3">
                                 <label for="thumbnailUrlField" class="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-gray-500">URL sẽ lưu vào DB</label>
-                                <input id="thumbnailUrlField" type="text" value="{{ old('thumbnail') }}" readonly class="w-full rounded-2xl border border-gray-800 bg-gray-950 px-4 py-3 text-sm text-gray-300 placeholder:text-gray-600 focus:outline-none">
+                                <input id="thumbnailUrlField" type="text" value="{{ old('thumbnail', $post->thumbnail) }}" readonly class="w-full rounded-2xl border border-gray-800 bg-gray-950 px-4 py-3 text-sm text-gray-300 placeholder:text-gray-600 focus:outline-none">
                             </div>
                             <div id="thumbnailUploadStatus" class="mt-3 text-sm text-gray-400"></div>
                         </div>
@@ -122,7 +121,7 @@
 
                 <div>
                     <label for="editor" class="mb-2 block text-sm font-semibold text-gray-300">Nội dung bài viết</label>
-                    <textarea id="editor" class="ckeditor" name="content">{{ old('content') }}</textarea>
+                    <textarea id="editor" class="ckeditor" name="content">{{ old('content', $post->content) }}</textarea>
                 </div>
             </div>
         </form>
@@ -133,7 +132,7 @@
                     <div>
                         <h3 class="mt-2 text-2xl font-extrabold tracking-tight text-white">Bài viết đã tạo</h3>
                     </div>
-                    <div class="text-sm text-gray-500">{{ $posts->total() }} bài viết</div>
+                    <!-- <div class="text-sm text-gray-500">{{ $posts->total() }} bài viết</div> -->
                 </div>
 
                 <div class="mt-6 overflow-hidden rounded-[1.5rem] border border-gray-800">
@@ -151,9 +150,9 @@
                             <tbody class="divide-y divide-gray-800 bg-gray-950/40">
                                 @forelse ($posts as $post)
                                     @php
-                                        $statusKey = $post->status ?? 'hidden';
-                                        $statusClass = $statusColors[$statusKey] ?? $statusColors['hidden'];
-                                        $statusLabel = $statusLabels[$statusKey] ?? 'Đã ẩn';
+                                        $statusKey = $post->status ?? 'draft';
+                                        $statusClass = $statusColors[$statusKey] ?? $statusColors['draft'];
+                                        $statusLabel = $statusLabels[$statusKey] ?? 'Nháp';
                                     @endphp
                                     <tr class="align-top text-gray-300">
                                         <td class="px-4 py-4">
@@ -172,24 +171,9 @@
                                             @endif
                                         </td>
                                         <td class="px-4 py-4">
-                                            <form action="{{ route('admin.posts.toggle', $post->id) }}" method="POST">
-    @csrf
-    @method('PATCH')
-
-    <button type="submit"
-        class="inline-flex items-center justify-center w-9 h-9 rounded-xl border 
-        {{ $post->status === 'visible' 
-            ? 'border-yellow-500/30 bg-yellow-500/10 text-yellow-300 hover:bg-yellow-500/20' 
-            : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20' }}">
-        
-        @if($post->status === 'visible')
-            <i class="fa-solid fa-eye-slash"></i>
-        @else
-            <i class="fa-solid fa-eye"></i>
-        @endif
-
-    </button>
-</form>
+                                            <span class="rounded-full border px-3 py-1 text-[11px] font-semibold {{ $statusClass }}">
+                                                {{ $statusLabel }}
+                                            </span>
                                         </td>
                                         <td class="px-4 py-4 text-xs text-gray-400">
                                             {{ $post->publish_at ? \Carbon\Carbon::parse($post->publish_at)->format('d/m/Y H:i') : 'Đăng ngay' }}
@@ -459,93 +443,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 .ck-editor__editable:focus {
     box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.45) !important;
-}
-</style>
-@endsection
-@section('scripts')
-<script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/super-build/ckeditor.js"></script>
-
-<script>
-let editorInstance = null;
-
-document.addEventListener("DOMContentLoaded", function () {
-
-    const el = document.querySelector('#editor');
-    if (!el) return;
-
-    CKEDITOR.ClassicEditor
-        .create(el, {
-
-            toolbar: [
-                'heading',
-                '|',
-                'fontSize', 'fontColor', 'fontBackgroundColor',
-                '|',
-                'bold', 'italic', 'underline',
-                '|',
-                'alignment',
-                '|',
-                'link',
-                '|',
-                'bulletedList', 'numberedList',
-                '|',
-                'imageUpload',
-                '|',
-                'undo', 'redo'
-            ],
-
-            heading: {
-                options: [
-                    { model: 'paragraph', title: 'Đoạn văn' },
-                    { model: 'heading1', view: 'h1', title: 'H1' },
-                    { model: 'heading2', view: 'h2', title: 'H2' },
-                    { model: 'heading3', view: 'h3', title: 'H3' }
-                ]
-            }
-
-        })
-        .catch(console.error);
-});
-</script>
-<style>
-.ck-editor__editable {
-    min-height: 300px;
-    color: #000;
-    font-size: 16px;
-    line-height: 1.6;
-}
-
-.ck-content img {
-    max-width: 100%;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    background: transparent !important;
-}
-
-.prose h1 {
-    font-size: 32px !important;
-    font-weight: 800;
-}
-
-.prose h2 {
-    font-size: 26px !important;
-    font-weight: 700;
-}
-
-.prose h3 {
-    font-size: 22px !important;
-    font-weight: 600;
-}
-.ck-content figure {
-    text-align: center;
-}
-
-.ck-content figcaption {
-    text-align: center;
-    display: block;
-    font-style: italic;
-    color: #9ca3af;
-    margin-top: 6px;
 }
 </style>
 @endsection

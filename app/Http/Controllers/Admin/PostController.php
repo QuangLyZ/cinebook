@@ -28,37 +28,26 @@ class PostController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'keywords' => ['nullable', 'string', 'max:255'],
-            'content' => ['required', 'string'],
-            'thumbnail' => ['nullable', 'url', 'max:2048'],
-            'publish_at' => ['nullable', 'date'],
-        ]);
+{
+    $request->validate([
+        'title' => 'required',
+        'content' => 'required',
+        'publish_at' => 'nullable'
+    ]);
 
-        Log::info('Admin post store payload received.', [
-            'title' => $request->input('title'),
-            'thumbnail' => $request->input('thumbnail'),
-        ]);
+    Post::create([
+        'title' => $request->title,
+        'keywords' => $request->keywords,
+        'content' => $request->content,
+        'thumbnail' => $request->thumbnail,
+        'publish_at' => $request->publish_at,
 
-        $publishAt = $request->filled('publish_at')
-            ? Carbon::parse($request->input('publish_at'))
-            : null;
+        // 👉 QUAN TRỌNG: dùng visible
+        'status' => 'visible'
+    ]);
 
-        Post::create([
-            'title' => $request->input('title'),
-            'keywords' => $request->input('keywords'),
-            'content' => $request->input('content'),
-            'thumbnail' => $request->input('thumbnail'),
-            'publish_at' => $publishAt,
-            'status' => $publishAt && $publishAt->isFuture() ? 'scheduled' : 'published',
-        ]);
-
-        return redirect()
-            ->route('admin.posts.index')
-            ->with('success', 'Đăng bài thành công!');
-    }
+    return redirect()->back()->with('success', 'Đăng bài thành công!');
+}
 
     public function uploadThumbnail(Request $request): JsonResponse
     {
@@ -148,4 +137,48 @@ class PostController extends Controller
 
         return $url;
     }
+public function edit($id)
+{
+    $post = Post::findOrFail($id);
+    $posts = Post::paginate(10); // thêm dòng này
+
+    return view('admin.posts.edit', compact('post', 'posts'));
+}
+
+public function update(Request $request, $id)
+{
+    $post = Post::findOrFail($id);
+
+    $post->update([
+        'title' => $request->title,
+        'keywords' => $request->keywords,
+        'content' => $request->content,
+        'thumbnail' => $request->thumbnail,
+        'publish_at' => $request->publish_at,
+    ]);
+
+    return redirect()->route('admin.posts.index')
+        ->with('success', 'Cập nhật thành công');
+}
+public function destroy($id)
+{
+    $post = Post::findOrFail($id);
+
+    if ($post->thumbnail) {
+        try {
+            $publicId = pathinfo($post->thumbnail, PATHINFO_FILENAME);
+            Cloudinary::destroy($publicId);
+        } catch (\Exception $e) {}
+    }
+
+    $post->delete();
+
+    return back()->with('success', 'Xóa bài viết thành công!');
+}
+public function show($id)
+{
+    $post = \App\Models\Post::findOrFail($id);
+    return view('admin.posts.show', compact('post'));
+}
+
 }
