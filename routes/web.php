@@ -99,6 +99,7 @@ $adminTabs = [
     'posts' => 'Bài viết',
     'actions' => 'Action',
     'feedback' => 'Ý kiến phản hồi',
+    'reviews' => 'Đánh giá phim',
 ];
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () use ($adminTabs) {
