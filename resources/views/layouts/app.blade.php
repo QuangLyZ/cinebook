@@ -138,6 +138,156 @@
         @yield('content')
     </main>
 
+    <!-- Review Modal Global -->
+    <div id="reviewModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-gray-900 border border-gray-700 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="px-6 py-4 border-b border-gray-800 flex justify-between items-center bg-gray-900/50">
+                <div>
+                    <h3 class="text-xl font-bold text-white" id="modalMovieName">Đánh giá phim</h3>
+                    <p class="text-sm text-gray-400">Chia sẻ cảm nhận của sếp về bộ phim này</p>
+                </div>
+                <button onclick="closeReviewModal()" class="text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="flex-grow overflow-y-auto p-6 space-y-8">
+                @auth
+                <form id="reviewForm" class="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
+                    <input type="hidden" id="modalMovieId">
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-400 mb-3">Sếp cho mấy sao?</label>
+                        <div class="flex space-x-3" id="starRating">
+                            @for ($i = 1; $i <= 5; $i++)
+                            <button type="button" onclick="setRating({{ $i }})" class="text-3xl transition-all duration-200 hover:scale-110 focus:outline-none">
+                                <i class="fa-star star-icon fa-regular text-gray-600" data-index="{{ $i }}"></i>
+                            </button>
+                            @endfor
+                        </div>
+                        <input type="hidden" id="ratingValue" name="rating" value="0">
+                    </div>
+                    <div class="mb-6">
+                        <label for="comment" class="block text-sm font-medium text-gray-400 mb-2">Lời bình của sếp</label>
+                        <textarea id="comment" name="comment" rows="3" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all" placeholder="Phim hay không sếp?"></textarea>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-8 rounded-lg transition-all shadow-lg shadow-red-600/20 active:scale-95">
+                            GỬI ĐÁNH GIÁ
+                        </button>
+                    </div>
+                </form>
+                @else
+                <div class="bg-gray-800/50 p-8 rounded-xl border border-dashed border-gray-700 text-center">
+                    <i class="fa-solid fa-user-lock text-4xl text-gray-600 mb-4"></i>
+                    <p class="text-gray-300 mb-4">Sếp cần đăng nhập để viết đánh giá!</p>
+                    <a href="{{ route('login') }}" class="inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">Đăng nhập ngay</a>
+                </div>
+                @endauth
+                <div>
+                    <div class="flex items-center justify-between mb-6">
+                        <h4 class="text-lg font-bold text-white flex items-center">
+                            <i class="fa-solid fa-comments mr-2 text-red-500"></i>
+                            Đánh giá từ cộng đồng
+                        </h4>
+                        <div class="text-sm text-gray-400">
+                            <span id="avgRatingText">0</span>/5 <i class="fa-solid fa-star text-yellow-500"></i> (<span id="countText">0</span> đánh giá)
+                        </div>
+                    </div>
+                    <div id="reviewsList" class="space-y-4">
+                        <div class="text-center py-10 text-gray-500"><p>Đang tải đánh giá...</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    let currentRating = 0;
+    function openReviewModal(movieId, movieName) {
+        document.getElementById('modalMovieId').value = movieId;
+        document.getElementById('modalMovieName').innerText = movieName;
+        document.getElementById('reviewModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        if (document.getElementById('reviewForm')) { document.getElementById('reviewForm').reset(); setRating(0); }
+        loadReviews(movieId);
+    }
+    function closeReviewModal() {
+        document.getElementById('reviewModal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+    function setRating(rating) {
+        currentRating = rating;
+        const input = document.getElementById('ratingValue');
+        if(input) input.value = rating;
+        const stars = document.querySelectorAll('.star-icon');
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.remove('fa-regular', 'text-gray-600');
+                star.classList.add('fa-solid', 'text-yellow-500');
+            } else {
+                star.classList.remove('fa-solid', 'text-yellow-500');
+                star.classList.add('fa-regular', 'text-gray-600');
+            }
+        });
+    }
+    function loadReviews(movieId) {
+        const list = document.getElementById('reviewsList');
+        fetch(`/movies/${movieId}/reviews`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('avgRatingText').innerText = data.average_rating;
+                document.getElementById('countText').innerText = data.review_count;
+                if (data.reviews.length === 0) {
+                    list.innerHTML = `<div class="text-center py-10 text-gray-500 italic text-sm">Chưa có đánh giá nào.</div>`;
+                    return;
+                }
+                list.innerHTML = data.reviews.map(review => `
+                    <div class="bg-gray-800/40 p-4 rounded-xl border border-gray-800">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white font-bold text-xs mr-3">
+                                    ${(review.user.fullname || 'U').charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <div class="text-sm font-bold text-white">${review.user.fullname}</div>
+                                    <div class="text-[10px] text-gray-500">${new Date(review.created_at).toLocaleDateString('vi-VN')}</div>
+                                </div>
+                            </div>
+                            <div class="flex text-yellow-500 text-[10px]">
+                                ${Array(5).fill(0).map((_, i) => `<i class="fa-${i < review.rating ? 'solid' : 'regular'} fa-star"></i>`).join('')}
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-300">${review.comment || ''}</p>
+                    </div>
+                `).join('');
+            });
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('reviewForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const movieId = document.getElementById('modalMovieId').value;
+                const rating = document.getElementById('ratingValue').value;
+                const comment = document.getElementById('comment').value;
+                if (rating == 0) {
+                    Swal.fire({ icon: 'warning', title: 'Opps!', text: 'Vui lòng chọn số sao!', background: '#1f2937', color: '#fff' });
+                    return;
+                }
+                fetch(`/movies/${movieId}/reviews`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+                    body: JSON.stringify({ rating, comment })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    Swal.fire({ icon: 'success', title: 'Thành công!', text: data.message, background: '#1f2937', color: '#fff' });
+                    loadReviews(movieId);
+                });
+            });
+        }
+    });
+    </script>
+
     <!-- Footer -->
     <footer class="bg-gray-950 border-t border-gray-800 pt-10 pb-6 mt-auto">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -333,5 +483,6 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 @endif
 
+    @stack('scripts')
 </body>
 </html>

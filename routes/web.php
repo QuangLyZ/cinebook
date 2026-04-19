@@ -14,9 +14,15 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\ReviewController;
 
 Route::post('/upload-image', [App\Http\Controllers\PostController::class, 'uploadImage'])
     ->name('upload.image');
+
+// Reviews
+Route::get('/movies/{movie}/reviews', [ReviewController::class, 'index'])->name('reviews.index');
+Route::post('/movies/{movie}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 Route::get('/sendEmail', [SendEmailController::class, 'send'])->name('sendEmail');
 
 // Trang chủ
@@ -142,6 +148,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Admin Management Resources
     Route::resource('movies', App\Http\Controllers\Admin\MovieController::class);
+    Route::resource('reviews', App\Http\Controllers\Admin\ReviewController::class)->only(['index', 'destroy']);
     Route::resource('cinemas', App\Http\Controllers\Admin\CinemaController::class);
     Route::resource('showtimes', App\Http\Controllers\Admin\ShowtimeController::class);
     Route::resource('tickets', App\Http\Controllers\Admin\TicketController::class);

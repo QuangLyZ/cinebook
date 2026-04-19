@@ -163,12 +163,13 @@
                                         {{ $movie->showtimes[0]->subtitle_name ?: '2D Phụ Đề' }}
                                     </span>
                                 @endif
+                                <button onclick="openReviewModal({{ $movie->id }}, '{{ addslashes($movie->name) }}')" class="text-xs border border-gray-600 text-gray-400 px-2 py-0.5 rounded hover:text-yellow-500 hover:border-yellow-500 transition-colors">
+                                    <i class="fa-regular fa-comment-dots mr-1"></i>Đánh giá
+                                </button>
                             </div>
-                            @if(isset($movie->rating))
-                            <div class="text-yellow-500 text-sm font-bold">
-                                <i class="fa-solid fa-star mr-1"></i>{{ number_format($movie->rating, 1) }}
+                            <div class="text-yellow-500 text-sm font-bold flex items-center">
+                                <i class="fa-solid fa-star mr-1"></i>{{ number_format($movie->average_rating ?? 0, 1) }}
                             </div>
-                            @endif
                         </div>
 
                         <h3 class="text-2xl font-bold text-white mb-2">{{ $movie->name }}</h3>

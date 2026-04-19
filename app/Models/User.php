@@ -57,4 +57,9 @@ class User extends Authenticatable
             set: fn (?string $value) => ['fullname' => $value],
         );
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
 }

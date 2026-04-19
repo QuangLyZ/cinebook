@@ -31,6 +31,7 @@ class MovieController extends Controller
                 ->get();
 
             $nowShowing = Movie::query()
+                ->with('reviews')
                 ->where(function ($query) use ($today) {
                     $query->whereNull('release_date')->orWhereDate('release_date', '<=', $today);
                 })
@@ -40,6 +41,7 @@ class MovieController extends Controller
                 ->get();
 
             $comingSoon = Movie::query()
+                ->with('reviews')
                 ->whereDate('release_date', '>', $today)
                 ->orderBy('release_date')
                 ->limit(8)
@@ -141,7 +143,7 @@ class MovieController extends Controller
                 ->join('rooms as rooms', 'rooms.id', '=', 'showtimes.room_id')
                 ->join('cinemas as cinemas', 'cinemas.id', '=', 'rooms.cinema_id')
                 ->leftJoin('subtitles as subtitles', 'subtitles.id', '=', 'showtimes.subtitle_id')
-                ->leftJoin('ratings as ratings', 'ratings.movie_id', '=', 'movies.id')
+                ->leftJoin('reviews as reviews', 'reviews.movie_id', '=', 'movies.id')
                 // If selectedDate is the special value 'all' then do not filter by date
                 ->when($selectedDate !== 'all', fn ($query) => $query->whereDate('showtimes.start_time', $selectedDate))
                 ->when($selectedCinemaId, fn ($query) => $query->where('cinemas.id', $selectedCinemaId))
@@ -177,7 +179,7 @@ class MovieController extends Controller
                     'cinemas.name as cinema_name',
                     'rooms.name as room_name',
                     'subtitles.name as subtitle_name',
-                    DB::raw('AVG(ratings.rate) as average_rating'),
+                    DB::raw('AVG(reviews.rating) as average_rating'),
                 ])
                 ->get();
 
@@ -213,11 +215,11 @@ class MovieController extends Controller
             if ($request->filled('q')) {
                 $q = mb_strtolower(trim($request->query('q')), 'UTF-8');
                 $searchedMovies = DB::table('movies')
-                    ->leftJoin('ratings', 'ratings.movie_id', '=', 'movies.id')
+                    ->leftJoin('reviews', 'reviews.movie_id', '=', 'movies.id')
                     ->where(DB::raw('LOWER(movies.name)'), 'like', "%{$q}%")
                     ->orWhere(DB::raw('LOWER(movies.genre)'), 'like', "%{$q}%")
                     ->groupBy('movies.id')
-                    ->select('movies.*', DB::raw('AVG(ratings.rate) as average_rating'))
+                    ->select('movies.*', DB::raw('AVG(reviews.rating) as average_rating'))
                     ->get();
                 
                 $searchMoviesFormatted = $searchedMovies->map(function ($m) {
