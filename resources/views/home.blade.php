@@ -70,21 +70,34 @@
             <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent opacity-90"></div>
             
             <div class="absolute bottom-0 w-full p-4">
-                <div class="flex items-center space-x-2 mb-2">
-                    <span class="bg-red-600 outline outline-1 outline-white text-white text-xs font-bold px-2 py-0.5 rounded">{{ $movie->age_limit ? 'T' . $movie->age_limit : 'P' }}</span>
-                    <span class="text-gray-300 text-xs"><i class="fa-solid fa-star text-yellow-500 mr-1"></i>4.8</span>
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-red-600 outline outline-1 outline-white text-white text-xs font-bold px-2 py-0.5 rounded">{{ $movie->age_limit ? 'T' . $movie->age_limit : 'P' }}</span>
+                        <span class="text-yellow-500 text-xs flex items-center">
+                            <i class="fa-solid fa-star mr-1"></i>
+                            <span class="text-gray-300 font-bold">{{ $movie->average_rating }}</span>
+                        </span>
+                    </div>
+                    <button onclick="openReviewModal({{ $movie->id }}, '{{ addslashes($movie->name) }}')" class="text-gray-400 hover:text-yellow-500 transition-colors" title="Đánh giá phim">
+                        <i class="fa-regular fa-comment-dots text-lg"></i>
+                    </button>
                 </div>
                 <h3 class="text-lg font-bold text-white mb-1 line-clamp-1">{{ $movie->name }}</h3>
                 <p class="text-gray-400 text-sm mb-3">{{ $movie->genre }}</p>
-                @if (filled($movie->booking_showtime_id))
-                    <a href="{{ route('booking.show', $movie->booking_showtime_id) }}" class="block w-full text-center bg-gray-700 group-hover:bg-red-600 text-white py-2 rounded font-medium transition-colors">
-                        MUA VÉ
-                    </a>
-                @else
-                    <a href="{{ route('movies.index') }}" class="block w-full text-center bg-gray-700 group-hover:bg-red-600 text-white py-2 rounded font-medium transition-colors">
-                        XEM LỊCH CHIẾU
-                    </a>
-                @endif
+                <div class="grid grid-cols-2 gap-2">
+                    @if (filled($movie->booking_showtime_id))
+                        <a href="{{ route('booking.show', $movie->booking_showtime_id) }}" class="text-center bg-red-600 hover:bg-red-700 text-white py-2 rounded font-medium transition-colors text-sm">
+                            MUA VÉ
+                        </a>
+                    @else
+                        <a href="{{ route('movies.index') }}" class="text-center bg-gray-700 hover:bg-red-600 text-white py-2 rounded font-medium transition-colors text-sm">
+                            LỊCH CHIẾU
+                        </a>
+                    @endif
+                    <button onclick="openReviewModal({{ $movie->id }}, '{{ addslashes($movie->name) }}')" class="text-center bg-gray-800 border border-gray-600 hover:bg-gray-700 text-white py-2 rounded font-medium transition-colors text-sm">
+                        ĐÁNH GIÁ
+                    </button>
+                </div>
             </div>
         </div>
         @endforeach
@@ -158,3 +171,9 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+// Logic openReviewModal đã được chuyển vào layouts/app.blade.php
+</script>
+@endpush

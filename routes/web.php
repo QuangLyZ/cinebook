@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\VoucherController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\MovieController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OtpController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CinemaController;
@@ -14,9 +15,15 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\ReviewController;
 
 Route::post('/upload-image', [App\Http\Controllers\PostController::class, 'uploadImage'])
     ->name('upload.image');
+
+// Reviews
+Route::get('/movies/{movie}/reviews', [ReviewController::class, 'index'])->name('reviews.index');
+Route::post('/movies/{movie}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 Route::get('/sendEmail', [SendEmailController::class, 'send'])->name('sendEmail');
 
 // Trang chủ
@@ -80,6 +87,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/account/password/otp', [AccountController::class, 'showPasswordOtpForm'])->name('account.password.otp');
     Route::post('/account/password/otp', [AccountController::class, 'verifyPasswordOtp'])->name('account.password.otp.verify');
     Route::get('/account/password/resend-otp', [AccountController::class, 'resendPasswordOtp'])->name('account.password.otp.resend');
+
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/read/{notification}', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
 });
 
 // OTP Routes
@@ -93,6 +104,7 @@ $adminTabs = [
     'posts' => 'Bài viết',
     'actions' => 'Action',
     'feedback' => 'Ý kiến phản hồi',
+    'reviews' => 'Đánh giá phim',
 ];
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () use ($adminTabs) {
@@ -126,10 +138,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         $request->validate(['reply_message' => 'required|string']);
 
         if ($feedback->user && $feedback->user->email) {
-            \Illuminate\Support\Facades\Mail::to($feedback->user->email)->send(
-                new \App\Mail\FeedbackReplyMail($feedback->title, $request->reply_message)
-            );
-            return back()->with('success', 'Đã gửi email phản hồi thành công đến ' . $feedback->user->email);
+            try {
+                \Illuminate\Support\Facades\Mail::to($feedback->user->email)->send(
+                    new \App\Mail\FeedbackReplyMail($feedback->title, $request->reply_message)
+                );
+                return back()->with('success', 'Đã gửi email phản hồi thành công đến ' . $feedback->user->email);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Mail Error: ' . $e->getMessage());
+                return back()->with('error', 'Lỗi gửi email: ' . $e->getMessage());
+            }
         }
 
         return back()->with('error', 'Người dùng này không có địa chỉ email hợp lệ.');
@@ -142,6 +159,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Admin Management Resources
     Route::resource('movies', App\Http\Controllers\Admin\MovieController::class);
+    Route::resource('reviews', App\Http\Controllers\Admin\ReviewController::class)->only(['index', 'destroy']);
     Route::resource('cinemas', App\Http\Controllers\Admin\CinemaController::class);
     Route::resource('showtimes', App\Http\Controllers\Admin\ShowtimeController::class);
     Route::resource('tickets', App\Http\Controllers\Admin\TicketController::class);

@@ -117,6 +117,91 @@
             }
         </script>
 
+    @elseif ($activeTab === 'reviews')
+        <div class="space-y-8 animate-[fadeIn_0.5s_ease-in-out]">
+            <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <h2 class="text-3xl font-extrabold tracking-tight text-white md:text-4xl">Quản lý Đánh giá phim</h2>
+                    <p class="mt-3 text-gray-400">Kiểm duyệt và quản lý các bình luận từ người dùng trên toàn hệ thống.</p>
+                </div>
+            </div>
+
+            @if(session('success'))
+                <div class="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-emerald-400 flex items-center gap-3">
+                    <i class="fa-solid fa-circle-check"></i>
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            <div class="rounded-[2rem] border border-gray-800 bg-gray-900 shadow-lg overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-800 text-sm">
+                        <thead class="bg-black/20 text-left text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                            <tr>
+                                <th class="px-6 py-4">Phim</th>
+                                <th class="px-6 py-4">Người dùng</th>
+                                <th class="px-6 py-4">Đánh giá</th>
+                                <th class="px-6 py-4">Bình luận</th>
+                                <th class="px-6 py-4">Thời gian</th>
+                                <th class="px-6 py-4 text-right">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-800">
+                            @forelse (($reviews ?? []) as $review)
+                                <tr class="bg-transparent transition hover:bg-gray-950/50">
+                                    <td class="px-6 py-5 align-top">
+                                        <div class="font-bold text-white">{{ $review->movie->name }}</div>
+                                        <div class="text-[10px] text-gray-500">{{ $review->movie->genre }}</div>
+                                    </td>
+                                    <td class="px-6 py-5 align-top">
+                                        <div class="text-white font-medium">{{ $review->user->fullname }}</div>
+                                        <div class="text-[10px] text-gray-500">{{ $review->user->email }}</div>
+                                    </td>
+                                    <td class="px-6 py-5 align-top">
+                                        <div class="flex text-yellow-500 text-xs">
+                                            @for ($i = 1; $i <= 5; $i++)
+                                                <i class="fa-{{ $i <= $review->rating ? 'solid' : 'regular' }} fa-star"></i>
+                                            @endfor
+                                        </div>
+                                        <div class="text-[10px] text-gray-500 mt-1">{{ $review->rating }}/5 sao</div>
+                                    </td>
+                                    <td class="px-6 py-5 align-top">
+                                        <div class="max-w-xs text-gray-300 leading-relaxed line-clamp-2 italic">
+                                            "{{ $review->comment ?: 'Không có bình luận' }}"
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5 align-top text-gray-500 text-xs">
+                                        {{ $review->created_at->format('H:i d/m/Y') }}
+                                        <div class="mt-1">{{ $review->created_at->diffForHumans() }}</div>
+                                    </td>
+                                    <td class="px-6 py-5 align-top text-right">
+                                        <form action="{{ route('admin.reviews.destroy', $review) }}" method="POST" onsubmit="return confirm('Sếp có chắc chắn muốn xóa đánh giá này không?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-gray-700 bg-gray-950 text-gray-400 transition hover:border-red-500 hover:text-red-500">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="px-6 py-12 text-center text-gray-500 italic">
+                                        Chưa có đánh giá nào để hiển thị.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                @if (isset($reviews) && method_exists($reviews, 'links'))
+                    <div class="px-6 py-4 bg-black/10 border-t border-gray-800">
+                        {{ $reviews->links() }}
+                    </div>
+                @endif
+            </div>
+        </div>
+
     @elseif ($activeTab === 'dashboard')
         @php
             $filter = $dashboardFilter ?? 'day';
@@ -781,6 +866,16 @@
                     'add_route' => route('admin.movies.create'),
                 ],
                 [
+                    'title'   => 'Đánh giá & Review',
+                    'desc'    => 'Quản lý các lượt đánh giá sao và bình luận từ khách hàng.',
+                    'icon'    => 'fa-star',
+                    'color'   => 'yellow',
+                    'count_label' => 'Tổng số đánh giá',
+                    'count'   => \App\Models\Review::count(),
+                    'route'   => route('admin.reviews.index'),
+                    'add_route' => null,
+                ],
+                [
                     'title'   => 'Quản lý Rạp',
                     'desc'    => 'Quản lý rạp chiếu, phòng chiếu và sơ đồ ghế ngồi.',
                     'icon'    => 'fa-building',
@@ -834,6 +929,7 @@
 
             $colorMap = [
                 'red'    => ['bg' => 'bg-red-500/10',    'text' => 'text-red-400',    'border' => 'border-red-500/30',    'badge' => 'bg-red-600',    'hover' => 'hover:border-red-500/40'],
+                'yellow' => ['bg' => 'bg-yellow-500/10', 'text' => 'text-yellow-400', 'border' => 'border-yellow-500/30', 'badge' => 'bg-yellow-600', 'hover' => 'hover:border-yellow-500/40'],
                 'sky'    => ['bg' => 'bg-sky-500/10',    'text' => 'text-sky-400',    'border' => 'border-sky-500/30',    'badge' => 'bg-sky-600',    'hover' => 'hover:border-sky-500/40'],
                 'violet' => ['bg' => 'bg-violet-500/10', 'text' => 'text-violet-400', 'border' => 'border-violet-500/30', 'badge' => 'bg-violet-600', 'hover' => 'hover:border-violet-500/40'],
                 'amber'  => ['bg' => 'bg-amber-500/10',  'text' => 'text-amber-400',  'border' => 'border-amber-500/30',  'badge' => 'bg-amber-600',  'hover' => 'hover:border-amber-500/40'],

@@ -10,10 +10,11 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('app:publish-posts')->everyMinute();
+        $schedule->command('notifications:send-showtime-reminders')->everyTenMinutes();
     }
 
     protected function commands()
     {
-        $this->load(__DIR__.'/Commands');
+        $this->load(__DIR__ . '/Commands');
     }
 }

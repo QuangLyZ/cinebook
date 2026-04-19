@@ -31,4 +31,19 @@ class Movie extends Model
     {
         return $this->hasMany(Showtime::class);
     }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function getAverageRatingAttribute()
+    {
+        return round($this->reviews()->where('is_visible', true)->avg('rating'), 1) ?: 0;
+    }
+
+    public function getReviewCountAttribute()
+    {
+        return $this->reviews()->where('is_visible', true)->count();
+    }
 }
