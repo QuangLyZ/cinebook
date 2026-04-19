@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\VoucherController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\MovieController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OtpController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CinemaController;
@@ -86,6 +87,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/account/password/otp', [AccountController::class, 'showPasswordOtpForm'])->name('account.password.otp');
     Route::post('/account/password/otp', [AccountController::class, 'verifyPasswordOtp'])->name('account.password.otp.verify');
     Route::get('/account/password/resend-otp', [AccountController::class, 'resendPasswordOtp'])->name('account.password.otp.resend');
+
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/read/{notification}', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
 });
 
 // OTP Routes

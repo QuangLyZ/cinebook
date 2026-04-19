@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Mail\BookingTicketMail;
+use App\Models\User;
+use App\Notifications\BookingStatusNotification;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
@@ -278,12 +280,28 @@ class BookingController extends Controller
             ]);
 
             if ($data['payment_method'] === 'vnpay') {
+                $request->user()->notify(new BookingStatusNotification(
+                    'pending',
+                    'Đặt vé thành công',
+                    'Đặt chỗ đã được ghi nhận. Vui lòng hoàn tất thanh toán VNPay để xác nhận vé.',
+                    route('account.index', ['tab' => 'tickets'])
+                ));
+
                 $paymentUrl = $this->createVnpayUrl($result['final_price'], $result['ticket_id']);
 
                 return response()->json(['payment_url' => $paymentUrl]);
             }
 
             $emailDelivered = $this->sendTicketConfirmationEmail($result['ticket_id'], $data['payment_method']);
+
+            $request->user()->notify(new BookingStatusNotification(
+                'success',
+                'Đặt vé thành công',
+                $emailDelivered
+                ? 'Thanh toán thành công. Vé đã được gửi tới email của bạn.'
+                : 'Thanh toán thành công. Vé đã được lưu trong tài khoản của bạn.',
+                route('account.index', ['tab' => 'tickets'])
+            ));
 
             return response()->json([
                 'message' => $emailDelivered
@@ -295,6 +313,13 @@ class BookingController extends Controller
                 'email_sent' => $emailDelivered,
             ]);
         } catch (ValidationException $exception) {
+            $request->user()?->notify(new BookingStatusNotification(
+                'failed',
+                'Đặt vé thất bại',
+                collect($exception->errors())->flatten()->first() ?: 'Đã có lỗi xảy ra khi đặt vé.',
+                route('booking.show', ['id' => $showtimeId])
+            ));
+
             $this->recordPaymentLog([
                 'user_id' => $request->user()?->id,
                 'ticket_id' => null,
@@ -318,6 +343,13 @@ class BookingController extends Controller
 
             throw $exception;
         } catch (\Throwable $exception) {
+            $request->user()?->notify(new BookingStatusNotification(
+                'failed',
+                'Thanh toán thất bại',
+                $exception->getMessage() ?: 'Đã có lỗi không xác định, vui lòng thử lại.',
+                route('booking.show', ['id' => $showtimeId])
+            ));
+
             $this->recordPaymentLog([
                 'user_id' => $request->user()?->id,
                 'ticket_id' => null,
@@ -522,6 +554,19 @@ class BookingController extends Controller
             $emailDelivered = $this->sendTicketConfirmationEmail($ticketId, 'vnpay');
             $ticketEmail = DB::table('tickets')->where('id', $ticketId)->value('email');
 
+            $ticket = DB::table('tickets')->where('id', $ticketId)->first();
+            if ($ticket && $ticket->user_id) {
+                $user = User::find($ticket->user_id);
+                $user?->notify(new BookingStatusNotification(
+                    'success',
+                    'Thanh toán thành công',
+                    $emailDelivered && filled($ticketEmail)
+                    ? 'Thanh toán thành công! Vé đã được gửi tới ' . $ticketEmail . '.'
+                    : 'Thanh toán thành công. Vé đã được lưu trong tài khoản của bạn.',
+                    route('account.index', ['tab' => 'tickets'])
+                ));
+            }
+
             $successMessage = $emailDelivered && filled($ticketEmail)
                 ? 'Thanh toán thành công! Vé đã được gửi tới ' . $ticketEmail . '.'
                 : 'Thanh toán thành công';
@@ -530,6 +575,16 @@ class BookingController extends Controller
         }
 
         $showtimeId = DB::table('tickets')->where('id', $ticketId)->value('showtime_id');
+        $ticket = DB::table('tickets')->where('id', $ticketId)->first();
+        if ($ticket && $ticket->user_id) {
+            $user = User::find($ticket->user_id);
+            $user?->notify(new BookingStatusNotification(
+                'failed',
+                'Thanh toán thất bại',
+                'Thanh toán VNPAY không thành công. Vui lòng thử lại hoặc kiểm tra lại thông tin thanh toán.',
+                $showtimeId ? route('booking.show', ['id' => $showtimeId]) : route('account.index', ['tab' => 'tickets'])
+            ));
+        }
 
         if ($showtimeId) {
             return redirect()->route('booking.show', ['id' => $showtimeId])->with('payment_error', 'Thanh toán thất bại!');

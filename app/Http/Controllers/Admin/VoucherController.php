@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\Voucher;
+use App\Notifications\PromotionNotification;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -65,7 +68,12 @@ class VoucherController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        Voucher::create($this->validatedData($request));
+        $data = $this->validatedData($request);
+        $voucher = Voucher::create($data);
+
+        if ($voucher->is_active && ($voucher->starts_at === null || Carbon::parse($voucher->starts_at)->isPast() || Carbon::parse($voucher->starts_at)->isToday())) {
+            $this->broadcastPromotionNotification($voucher);
+        }
 
         return redirect()
             ->route('admin.actions')
@@ -74,11 +82,47 @@ class VoucherController extends Controller
 
     public function update(Request $request, Voucher $voucher): RedirectResponse
     {
-        $voucher->update($this->validatedData($request, $voucher));
+        $wasActive = $voucher->is_active;
+        $wasStartsAt = $voucher->starts_at;
+
+        $data = $this->validatedData($request, $voucher);
+        $voucher->update($data);
+
+        $startsAt = $data['starts_at'] ? Carbon::parse($data['starts_at']) : null;
+        $shouldNotify = $data['is_active'] && !$wasActive && ($startsAt === null || $startsAt->isPast() || $startsAt->isToday());
+
+        if ($shouldNotify) {
+            $this->broadcastPromotionNotification($voucher);
+        }
 
         return redirect()
             ->route('admin.actions')
             ->with('success', 'Voucher đã được cập nhật.');
+    }
+
+    protected function broadcastPromotionNotification(Voucher $voucher): void
+    {
+        $title = 'Chương trình ưu đãi mới';
+        $message = 'Voucher ' . $voucher->code . ' đã được kích hoạt. ' . (
+            $voucher->discount_rate
+            ? "Giảm {$voucher->discount_rate}%"
+            : 'Giảm ' . number_format((float) $voucher->discount_value, 0, ',', '.') . 'đ'
+        ) . '.';
+
+        User::query()->chunk(100, function ($users) use ($title, $message) {
+            /** @var \Illuminate\Database\Eloquent\Collection<int, User> $users */
+            foreach ($users as $user) {
+                if (!$user instanceof User) {
+                    continue;
+                }
+
+                $user->notify(new PromotionNotification(
+                    $title,
+                    $message,
+                    route('movies.index')
+                ));
+            }
+        });
     }
 
     public function destroy(Voucher $voucher): RedirectResponse
