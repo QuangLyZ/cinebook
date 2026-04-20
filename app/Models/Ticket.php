@@ -19,7 +19,8 @@ class Ticket extends Model
         'voucher_code',
         'reference_code',
         'ticket_code',
-        'emailed_at'
+        'status',
+        'emailed_at',
     ];
 
     protected $casts = [

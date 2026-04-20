@@ -58,6 +58,14 @@ class BookingController extends Controller
                 ->join('tickets', 'tickets.id', '=', 'ticket_details.ticket_id')
                 ->join('seats', 'seats.id', '=', 'ticket_details.seat_id')
                 ->where('tickets.showtime_id', $showtimeId)
+                ->where(function($query) {
+                    $query->where('tickets.status', 'paid')
+                          ->orWhereNull('tickets.status')
+                          ->orWhere(function($q) {
+                              $q->where('tickets.status', 'pending')
+                                ->where('tickets.created_at', '>=', now()->subMinutes(10));
+                          });
+                })
                 ->pluck('seats.seat_name')
                 ->all();
 
@@ -183,6 +191,14 @@ class BookingController extends Controller
                     ->join('tickets', 'tickets.id', '=', 'ticket_details.ticket_id')
                     ->where('tickets.showtime_id', $showtimeId)
                     ->whereIn('ticket_details.seat_id', $seats->pluck('id'))
+                    ->where(function($query) {
+                        $query->where('tickets.status', 'paid')
+                              ->orWhereNull('tickets.status')
+                              ->orWhere(function($q) {
+                                  $q->where('tickets.status', 'pending')
+                                    ->where('tickets.created_at', '>=', now()->subMinutes(10));
+                              });
+                    })
                     ->lockForUpdate() // Ngăn chặn các request khác đọc/ghi vào các dòng này cho đến khi transaction xong
                     ->exists();
 
@@ -212,6 +228,7 @@ class BookingController extends Controller
                     'voucher_code' => $voucher?->code,
                     'reference_code' => $referenceCode,
                     'ticket_code' => $ticketCode,
+                    'status' => 'pending',
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -306,6 +323,11 @@ class BookingController extends Controller
                 : 'Thanh toán thành công. Vé đã được lưu trong tài khoản của bạn.',
                 route('account.index', ['tab' => 'tickets'])
             ));
+
+            DB::table('tickets')->where('id', $result['ticket_id'])->update([
+                'status' => 'paid',
+                'updated_at' => now()
+            ]);
 
             return response()->json([
                 'message' => $emailDelivered
@@ -555,6 +577,10 @@ class BookingController extends Controller
         $ticketId = (int) $request->vnp_TxnRef;
 
         if ($request->vnp_ResponseCode === '00') {
+            DB::table('tickets')->where('id', $ticketId)->update([
+                'status' => 'paid',
+                'updated_at' => now()
+            ]);
             $emailDelivered = $this->sendTicketConfirmationEmail($ticketId, 'vnpay');
             $ticketEmail = DB::table('tickets')->where('id', $ticketId)->value('email');
 

@@ -11,6 +11,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('app:publish-posts')->everyMinute();
         $schedule->command('notifications:send-showtime-reminders')->everyTenMinutes();
+        $schedule->command('app:cleanup-expired-tickets')->everyMinute();
     }
 
     protected function commands()
