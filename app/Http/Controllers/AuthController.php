@@ -127,7 +127,7 @@ class AuthController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:Users,email',
-            'phone' => 'required|string|max:20',
+            'phone' => 'nullable|string|max:20',
             'password' => 'required|string|min:8|confirmed',
         ], [
             'name.required' => 'Vui lòng nhập họ và tên.',
@@ -146,7 +146,7 @@ class AuthController extends Controller
         $userData = [
             'fullname' => trim($request->name),
             'email' => trim($request->email),
-            'phone' => trim($request->phone),
+            'phone' => $request->phone ? trim($request->phone) : null,
             'password' => Hash::make($request->password),
             'admin_role' => false,
             'otp' => $otpCode
