@@ -78,7 +78,7 @@ class TicketController extends Controller
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
             fputcsv($handle, [
-                'ID', 'Khách hàng', 'Email', 'SĐT',
+                'Mã vé', 'ID', 'Khách hàng', 'Email', 'SĐT',
                 'Phim', 'Rạp', 'Phòng', 'Suất chiếu',
                 'Số ghế', 'Tổng tiền (VND)', 'Ngày đặt'
             ]);
@@ -86,6 +86,7 @@ class TicketController extends Controller
             foreach ($tickets as $ticket) {
                 $showtime = $ticket->showtime;
                 fputcsv($handle, [
+                    $ticket->ticket_code ?: ('CB-' . str_pad((string) $ticket->id, 8, '0', STR_PAD_LEFT)),
                     $ticket->id,
                     $ticket->fullname ?? ($ticket->user?->name ?? 'N/A'),
                     $ticket->email ?? ($ticket->user?->email ?? 'N/A'),

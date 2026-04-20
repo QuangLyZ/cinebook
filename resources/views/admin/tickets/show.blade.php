@@ -14,7 +14,9 @@
                 <i class="fa-solid fa-chevron-left text-2xl"></i>
             </a>
             <div>
-                <h2 class="text-2xl font-extrabold tracking-tight text-white">Chi tiết Vé #{{ $ticket->id }}</h2>
+                <h2 class="text-2xl font-extrabold tracking-tight text-white">
+                    Chi tiết Vé {{ $ticket->ticket_code ?: ('CB-' . str_pad((string) $ticket->id, 8, '0', STR_PAD_LEFT)) }}
+                </h2>
                 <p class="mt-1 text-sm text-gray-400">Xem thông tin ghế và thanh toán chi tiết.</p>
             </div>
         </div>

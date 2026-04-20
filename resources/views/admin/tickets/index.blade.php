@@ -74,7 +74,9 @@
                 <tbody class="divide-y divide-gray-800">
                     @forelse ($tickets as $ticket)
                         <tr class="transition-colors hover:bg-gray-800/50">
-                            <td class="px-6 py-4 text-gray-500 font-mono text-xs">#{{ $ticket->id }}</td>
+                            <td class="px-6 py-4 text-gray-500 font-mono text-xs">
+                                {{ $ticket->ticket_code ?: ('CB-' . str_pad((string) $ticket->id, 8, '0', STR_PAD_LEFT)) }}
+                            </td>
                             <td class="px-6 py-4">
                                 <div class="font-bold text-white">
                                     {{ $ticket->fullname ?? ($ticket->user?->name ?? 'Guest') }}

@@ -4,6 +4,7 @@
     $showTime = $ticket->start_time?->format('H:i');
     $ageLimit = $ticket->age_limit ? 'T'.$ticket->age_limit : 'Dang cap nhat';
     $emailedAt = $ticket->emailed_at?->format('d/m/Y H:i');
+    $displayTicketCode = $ticket->ticket_code ?: ('CB-' . str_pad((string) $ticket->id, 8, '0', STR_PAD_LEFT));
 @endphp
 <!DOCTYPE html>
 <html lang="vi">
@@ -23,7 +24,7 @@
 
             <div style="margin-top:24px;border-radius:20px;background:rgba(15,23,42,0.75);padding:22px;border:1px solid rgba(255,255,255,0.08);">
                 <div style="font-size:13px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.2em;">Ma ve</div>
-                <div style="margin-top:8px;font-size:34px;font-weight:800;color:#fef2f2;">#{{ $ticket->id }}</div>
+                <div style="margin-top:8px;font-size:34px;font-weight:800;color:#fef2f2;">{{ $displayTicketCode }}</div>
                 <div style="margin-top:10px;font-size:15px;color:#fca5a5;">{{ $ticket->movie_name }}</div>
             </div>
 
@@ -109,7 +110,7 @@
             </div>
 
             <p style="margin:22px 0 0;font-size:13px;line-height:1.7;color:#9ca3af;">
-                Luu y: vui long co mat truoc gio chieu it nhat 15 phut. Neu can doi chieu, ban co the cung cap ma ve <strong style="color:#ffffff;">#{{ $ticket->id }}</strong> cho nhan vien.
+                Luu y: vui long co mat truoc gio chieu it nhat 15 phut. Neu can doi chieu, ban co the cung cap ma ve <strong style="color:#ffffff;">{{ $displayTicketCode }}</strong> cho nhan vien.
             </p>
         </div>
     </div>

@@ -14,6 +14,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
@@ -196,6 +197,7 @@ class BookingController extends Controller
                 $discountAmount = $voucher ? $this->calculateDiscount($voucher, $baseTotal) : 0;
                 $finalPrice = max($baseTotal - $discountAmount, 0);
                 $referenceCode = 'PAY-' . now()->format('YmdHis') . '-' . rand(1000, 9999);
+                $ticketCode = $this->generateUniqueTicketCode();
 
                 $ticketId = DB::table('tickets')->insertGetId([
                     'user_id' => $request->user()->id,
@@ -209,6 +211,7 @@ class BookingController extends Controller
                     'final_price' => $finalPrice,
                     'voucher_code' => $voucher?->code,
                     'reference_code' => $referenceCode,
+                    'ticket_code' => $ticketCode,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -254,6 +257,7 @@ class BookingController extends Controller
                     'email' => $data['email'],
                     'phone' => $data['phone'],
                     'reference_code' => $referenceCode,
+                    'ticket_code' => $ticketCode,
                     'fullname' => $data['fullname'],
                 ];
             });
@@ -645,6 +649,7 @@ class BookingController extends Controller
                 'tickets.total_price',
                 'tickets.final_price',
                 'tickets.reference_code',
+                'tickets.ticket_code',
                 'tickets.emailed_at',
                 'movies.name as movie_name',
                 'movies.age_limit',
@@ -690,5 +695,14 @@ class BookingController extends Controller
         };
 
         return $ticket;
+    }
+
+    private function generateUniqueTicketCode(): string
+    {
+        do {
+            $code = 'CB-' . strtoupper(Str::random(8));
+        } while (DB::table('tickets')->where('ticket_code', $code)->exists());
+
+        return $code;
     }
 }

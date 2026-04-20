@@ -18,6 +18,7 @@ class Ticket extends Model
         'final_price',
         'voucher_code',
         'reference_code',
+        'ticket_code',
         'emailed_at'
     ];
 

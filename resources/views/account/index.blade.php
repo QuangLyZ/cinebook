@@ -167,7 +167,9 @@
                             <div>
                                 <div class="flex flex-wrap items-center gap-3">
                                     <h3 class="text-xl font-bold text-white">{{ $ticket->movie_name ?: 'Phim đang cập nhật' }}</h3>
-                                    <span class="rounded-full bg-gray-800 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-gray-300">#{{ $ticket->id }}</span>
+                                    <span class="rounded-full bg-gray-800 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-gray-300">
+                                        {{ $ticket->ticket_code ?: ('CB-' . str_pad((string) $ticket->id, 8, '0', STR_PAD_LEFT)) }}
+                                    </span>
                                     @if ($ticket->voucher_code)
                                         <span class="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">
                                             Voucher {{ $ticket->voucher_code }}

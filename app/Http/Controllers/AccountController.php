@@ -65,6 +65,7 @@ class AccountController extends Controller
             ->orderByDesc('tickets.booking_date')
             ->select([
                 'tickets.id',
+                'tickets.ticket_code',
                 'tickets.booking_date',
                 'tickets.total_price',
                 'tickets.final_price',
