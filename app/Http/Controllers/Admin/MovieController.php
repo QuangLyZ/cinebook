@@ -86,7 +86,48 @@ class MovieController extends Controller
 
     public function destroy(Movie $movie)
     {
-        $movie->delete();
-        return redirect()->route('admin.movies.index')->with('success', 'Xóa phim thành công!');
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($movie) {
+                // 1. Xóa các đánh giá (Reviews) liên quan đến phim
+                $movie->reviews()->delete();
+
+                // 2. Xóa các dữ liệu liên quan đến suất chiếu (Showtimes)
+                foreach ($movie->showtimes as $showtime) {
+                    // Tìm các vé (Tickets) của suất chiếu này
+                    $ticketIds = \Illuminate\Support\Facades\DB::table('tickets')
+                        ->where('showtime_id', $showtime->id)
+                        ->pluck('id');
+
+                    if ($ticketIds->isNotEmpty()) {
+                        // Xóa chi tiết vé (TicketDetails)
+                        \Illuminate\Support\Facades\DB::table('ticket_details')
+                            ->whereIn('ticket_id', $ticketIds)
+                            ->delete();
+
+                        // Xóa log thanh toán (PaymentLogs) nếu có
+                        \Illuminate\Support\Facades\DB::table('payment_logs')
+                            ->whereIn('ticket_id', $ticketIds)
+                            ->orWhere('showtime_id', $showtime->id)
+                            ->delete();
+
+                        // Xóa các bản ghi vé (Tickets)
+                        \Illuminate\Support\Facades\DB::table('tickets')
+                            ->whereIn('id', $ticketIds)
+                            ->delete();
+                    }
+
+                    // Xóa chính suất chiếu đó
+                    $showtime->delete();
+                }
+
+                // 3. Cuối cùng mới xóa phim
+                $movie->delete();
+            });
+
+            return redirect()->route('admin.movies.index')->with('success', 'Sếp đã xóa thành công phim và toàn bộ dữ liệu suất chiếu, vé liên quan rồi nhé! ✨');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Lỗi khi sếp xóa phim: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Ôi sếp ơi, có lỗi khi xóa rồi: ' . $e->getMessage());
+        }
     }
 }

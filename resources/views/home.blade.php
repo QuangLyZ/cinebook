@@ -5,8 +5,8 @@
     $heroPoster = filled($heroMovie?->poster)
         ? $heroMovie->poster
         : 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2000&auto=format&fit=crop';
-    $heroBookingUrl = filled($heroMovie?->booking_showtime_id)
-        ? route('booking.show', $heroMovie->booking_showtime_id)
+    $heroBookingUrl = $heroMovie
+        ? route('movies.show', $heroMovie->id)
         : route('movies.index');
 @endphp
 <!-- Hero Section -->
@@ -85,15 +85,9 @@
                 <h3 class="text-lg font-bold text-white mb-1 line-clamp-1">{{ $movie->name }}</h3>
                 <p class="text-gray-400 text-sm mb-3">{{ $movie->genre }}</p>
                 <div class="grid grid-cols-2 gap-2">
-                    @if (filled($movie->booking_showtime_id))
-                        <a href="{{ route('booking.show', $movie->booking_showtime_id) }}" class="text-center bg-red-600 hover:bg-red-700 text-white py-2 rounded font-medium transition-colors text-sm">
-                            MUA VÉ
-                        </a>
-                    @else
-                        <a href="{{ route('movies.index') }}" class="text-center bg-gray-700 hover:bg-red-600 text-white py-2 rounded font-medium transition-colors text-sm">
-                            LỊCH CHIẾU
-                        </a>
-                    @endif
+                    <a href="{{ route('movies.show', $movie->id) }}" class="text-center bg-red-600 hover:bg-red-700 text-white py-2 rounded font-medium transition-colors text-sm">
+                        CHI TIẾT
+                    </a>
                     <button onclick="openReviewModal({{ $movie->id }}, '{{ addslashes($movie->name) }}')" class="text-center bg-gray-800 border border-gray-600 hover:bg-gray-700 text-white py-2 rounded font-medium transition-colors text-sm">
                         ĐÁNH GIÁ
                     </button>

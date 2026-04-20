@@ -30,6 +30,15 @@
         </div>
     @endif
 
+    @if(session('error'))
+        <div class="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-red-400">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <p class="font-semibold">{{ session('error') }}</p>
+            </div>
+        </div>
+    @endif
+
     <div class="overflow-hidden rounded-3xl border border-gray-800 bg-gray-900/70 shadow-xl">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm whitespace-nowrap">
@@ -49,7 +58,7 @@
                                 <div class="flex items-center gap-4">
                                     <div class="h-16 w-12 shrink-0 overflow-hidden rounded-lg bg-gray-800">
                                         @if($movie->poster)
-                                            <img src="{{ $movie->poster }}" alt="{{ $movie->name }}" class="h-full w-full object-cover">
+                                            <img src="{{ str_starts_with($movie->poster, 'http') ? $movie->poster : asset(ltrim($movie->poster, '/')) }}" alt="{{ $movie->name }}" class="h-full w-full object-cover">
                                         @else
                                             <div class="flex h-full w-full items-center justify-center text-gray-600">
                                                 <i class="fa-solid fa-film"></i>

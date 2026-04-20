@@ -59,6 +59,7 @@ Route::get('/forgot-password', function () {
 // Movies
 Route::get('/movies/suggestions', [MovieController::class, 'suggestions'])->name('movies.suggestions');
 Route::get('/movies', [MovieController::class, 'list'])->name('movies.index');
+Route::get('/movies/{id}', [MovieController::class, 'show'])->name('movies.show');
 
 // Cinemas
 Route::get('/cinemas', [CinemaController::class, 'theaters'])->name('cinemas.index');

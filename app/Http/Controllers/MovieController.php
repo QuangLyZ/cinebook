@@ -82,8 +82,24 @@ class MovieController extends Controller
 
     public function show($id)
     {
-        $movie = Movie::findOrFail($id);
-        return view('booking.show', compact('movie'));
+        $movie = Movie::with(['reviews.user', 'showtimes' => function($query) {
+            $query->where('start_time', '>=', now())
+                  ->orderBy('start_time')
+                  ->with(['room.cinema', 'subtitle']);
+        }])->findOrFail($id);
+
+        $averageRating = $movie->reviews()->avg('rating') ?: 0;
+
+        // Group showtimes by date and then by cinema
+        $groupedShowtimes = $movie->showtimes->groupBy(function($showtime) {
+            return \Carbon\Carbon::parse($showtime->start_time)->format('Y-m-d');
+        })->map(function($dayShowtimes) {
+            return $dayShowtimes->groupBy(function($showtime) {
+                return $showtime->room->cinema->name;
+            });
+        });
+
+        return view('movies.show', compact('movie', 'averageRating', 'groupedShowtimes'));
     }
 
     public function suggestions(Request $request)

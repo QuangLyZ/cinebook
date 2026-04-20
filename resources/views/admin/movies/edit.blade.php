@@ -103,7 +103,7 @@
                 <div class="flex items-start gap-6 rounded-2xl border-2 border-dashed border-gray-700 bg-black/30 p-6 transition hover:border-red-500/50 hover:bg-black/50">
                     @if($movie->poster)
                         <div class="h-32 w-24 shrink-0 overflow-hidden rounded-xl border border-gray-800 bg-gray-900 shadow-md">
-                            <img src="{{ $movie->poster }}" alt="Poster" class="h-full w-full object-cover">
+                            <img src="{{ str_starts_with($movie->poster, 'http') ? $movie->poster : asset(ltrim($movie->poster, '/')) }}" alt="Poster" class="h-full w-full object-cover">
                         </div>
                     @endif
                     <div class="flex-1 pt-2">
