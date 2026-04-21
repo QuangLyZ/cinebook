@@ -162,7 +162,6 @@ class MovieController extends Controller
                 ->join('cinemas as cinemas', 'cinemas.id', '=', 'rooms.cinema_id')
                 ->leftJoin('subtitles as subtitles', 'subtitles.id', '=', 'showtimes.subtitle_id')
                 ->leftJoin('reviews as reviews', 'reviews.movie_id', '=', 'movies.id')
-                // If selectedDate is the special value 'all' then do not filter by date
                 ->when($selectedDate !== 'all', fn ($query) => $query->whereDate('showtimes.start_time', $selectedDate))
                 ->when($selectedCinemaId, fn ($query) => $query->where('cinemas.id', $selectedCinemaId))
                 ->groupBy([

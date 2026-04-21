@@ -192,10 +192,16 @@
                             <div class="flex flex-wrap gap-2">
                                 @if(isset($movie->showtimes) && count($movie->showtimes) > 0)
                                     @foreach($movie->showtimes as $showtime)
+                                    @php
+                                        $isPast = \Carbon\Carbon::parse($showtime->start_time)->isPast();
+                                    @endphp
                                     <a
-                                        href="{{ route('booking.show', $showtime->id) }}"
-                                        class="px-4 py-2 bg-gray-900 border border-gray-600 text-gray-200 rounded-md hover:border-red-500 hover:text-red-400 transition-colors text-sm font-medium"
-                                        title="{{ trim(($showtime->cinema_name ?? '') . ' - ' . ($showtime->room_name ?? '')) }}"
+                                        href="{{ $isPast ? 'javascript:void(0)' : route('booking.show', $showtime->id) }}"
+                                        class="px-4 py-2 rounded-md transition-colors text-sm font-medium border 
+                                            {{ $isPast 
+                                                ? 'bg-gray-800/50 border-gray-700 text-gray-500 cursor-not-allowed opacity-40 grayscale' 
+                                                : 'bg-gray-900 border-gray-600 text-gray-200 hover:border-red-500 hover:text-red-400' }}"
+                                        title="{{ $isPast ? 'Suất chiếu đã kết thúc' : trim(($showtime->cinema_name ?? '') . ' - ' . ($showtime->room_name ?? '')) }}"
                                     >
                                         {{ \Carbon\Carbon::parse($showtime->start_time)->format('H:i') }}
                                     </a>

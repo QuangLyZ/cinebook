@@ -173,12 +173,18 @@
                                                 </h5>
                                                 <div class="flex flex-wrap gap-3">
                                                     @foreach($showtimes as $showtime)
-                                                        <a href="{{ route('booking.show', $showtime->id) }}" 
-                                                           class="group/time relative px-6 py-3 bg-gray-800 hover:bg-red-600 border border-gray-700 hover:border-red-500 rounded-xl transition-all duration-300">
-                                                            <div class="text-white font-bold group-hover/time:scale-110 transition-transform">
+                                                        @php
+                                                            $isPast = \Carbon\Carbon::parse($showtime->start_time)->isPast();
+                                                        @endphp
+                                                        <a href="{{ $isPast ? 'javascript:void(0)' : route('booking.show', $showtime->id) }}" 
+                                                           class="group/time relative px-6 py-3 border rounded-xl transition-all duration-300
+                                                           {{ $isPast 
+                                                               ? 'bg-gray-900/50 border-gray-800 text-gray-600 cursor-not-allowed opacity-40 grayscale' 
+                                                               : 'bg-gray-800 hover:bg-red-600 border-gray-700 hover:border-red-500 text-white' }}">
+                                                            <div class="font-bold {{ !$isPast ? 'group-hover/time:scale-110' : '' }} transition-transform">
                                                                 {{ \Carbon\Carbon::parse($showtime->start_time)->format('H:i') }}
                                                             </div>
-                                                            <div class="text-[10px] text-gray-500 group-hover/time:text-red-100 uppercase mt-0.5">
+                                                            <div class="text-[10px] uppercase mt-0.5 {{ $isPast ? 'text-gray-700' : 'text-gray-500 group-hover/time:text-red-100' }}">
                                                                 {{ $showtime->subtitle->name ?? '2D' }}
                                                             </div>
                                                         </a>
