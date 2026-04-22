@@ -106,18 +106,30 @@
             <a href="/movies" class="text-yellow-500 hover:text-yellow-400 font-medium">Xem tất cả</a>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-           @foreach ($comingPosts as $post)
+           @forelse ($comingSoon as $movie)
             <div class="group relative rounded-xl overflow-hidden bg-gray-800">
-               <img alt="{{ $post->title }}" class="w-full h-80 object-cover opacity-80 group-hover:opacity-100 transition-opacity" src="{{ $post->thumbnail ?? 'https://images.unsplash.com/photo-1509281373149-e957c6296406?q=80&w=400&h=600&auto=format&fit=crop' }}">
+               <img alt="{{ $movie->name }}" class="w-full h-80 object-cover opacity-80 group-hover:opacity-100 transition-opacity" src="{{ $movie->poster ?? 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=400&h=600&auto=format&fit=crop' }}">
                 
                 <div class="absolute bottom-0 w-full p-4 bg-gradient-to-t from-gray-900 to-transparent">
-                    <a href="{{ route('posts.show', $post->id) }}">    
-                        <h3 class="text-lg font-bold text-white mb-1">{{ $post->title }}</h3>
+                    <a href="{{ route('movies.show', $movie->id) }}">    
+                        <h3 class="text-lg font-bold text-white mb-1">{{ $movie->name }}</h3>
                     </a>
-                        <p class="text-gray-400 text-sm">{{ $post->keywords }}</p>
+                        <p class="text-gray-400 text-sm">
+                            {{ $movie->release_date ? \Carbon\Carbon::parse($movie->release_date)->format('d/m/Y') : ($movie->genre ?: 'Sắp ra mắt') }}
+                        </p>
                 </div>
             </div>
-            @endforeach
+            @empty
+            @for ($i = 1; $i <= 4; $i++)
+            <div class="group relative rounded-xl overflow-hidden bg-gray-800">
+               <img alt="Coming soon" class="w-full h-80 object-cover opacity-80" src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=400&h=600&auto=format&fit=crop">
+                <div class="absolute bottom-0 w-full p-4 bg-gradient-to-t from-gray-900 to-transparent">
+                    <h3 class="text-lg font-bold text-white mb-1">Phim Sắp Ra Mắt</h3>
+                    <p class="text-gray-400 text-sm">Đang cập nhật lịch chiếu</p>
+                </div>
+            </div>
+            @endfor
+            @endforelse
         </div>
     </div>
 </div>

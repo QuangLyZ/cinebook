@@ -73,7 +73,7 @@
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <span class="rounded-full bg-gray-800 px-3 py-1 text-xs font-semibold text-gray-300">
-                                    {{ $movie->genre ?? 'Chưa rập' }}
+                                    {{ $movie->genre ?? 'Chưa cập nhật' }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-center text-gray-300">

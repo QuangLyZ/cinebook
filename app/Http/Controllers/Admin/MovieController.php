@@ -4,11 +4,17 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Movie;
+use App\Support\CloudinaryUploader;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class MovieController extends Controller
 {
+    public function __construct(
+        private readonly CloudinaryUploader $cloudinaryUploader
+    ) {
+    }
+
     public function index()
     {
         $movies = Movie::latest()->paginate(10);
@@ -43,8 +49,10 @@ class MovieController extends Controller
         ]);
 
         if ($request->hasFile('poster')) {
-            $path = $request->file('poster')->store('posters', 'public');
-            $validated['poster'] = '/storage/' . $path;
+            $validated['poster'] = $this->cloudinaryUploader->uploadImage(
+                $request->file('poster'),
+                'movies/posters'
+            );
         }
 
         Movie::create($validated);
@@ -76,8 +84,10 @@ class MovieController extends Controller
         ]);
 
         if ($request->hasFile('poster')) {
-            $path = $request->file('poster')->store('posters', 'public');
-            $validated['poster'] = '/storage/' . $path;
+            $validated['poster'] = $this->cloudinaryUploader->uploadImage(
+                $request->file('poster'),
+                'movies/posters'
+            );
         }
 
         $movie->update($validated);

@@ -23,7 +23,9 @@
                 <input type="hidden" name="cinema" value="{{ request('cinema') }}">
             @endif
             <div class="flex-1 relative">
-                <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                <div class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
+                    <i class="fa-solid fa-search text-gray-500"></i>
+                </div>
                 <input type="text" id="movieSearch" name="q" value="{{ request('q') }}" placeholder="Tìm tên phim, rạp, độ tuổi (T18, T13)..."
                     onkeyup="applyClientFilters()"
                     class="block w-full pl-10 pr-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none">

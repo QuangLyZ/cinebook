@@ -102,7 +102,7 @@
                                     <img id="thumbnailPreview" src="{{ old('thumbnail', $post->thumbnail) }}" class="h-56 w-full rounded-[1.25rem] object-cover">
                                     <div class="mt-4 rounded-2xl border border-gray-800 bg-black/40 p-3 text-left">
                                         <div class="text-xs uppercase tracking-[0.22em] text-gray-500">Cloudinary URL</div>
-                                        <div id="thumbnailUrlLabel" class="mt-2 break-all text-sm text-gray-300">{{ old('thumbnail') }}</div>
+                                        <div id="thumbnailUrlLabel" class="mt-2 break-all text-sm text-gray-300">{{ old('thumbnail', $post->thumbnail) }}</div>
                                     </div>
                                     <button type="button" id="removeThumbnailButton" class="mt-4 inline-flex items-center gap-2 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-300 transition hover:bg-red-500/20">
                                         <i class="fa-solid fa-trash-can"></i>
@@ -226,7 +226,6 @@
 @endsection
 
 @section('scripts')
-
 <script>
 let editorInstance = null;
 
@@ -248,19 +247,29 @@ document.addEventListener('DOMContentLoaded', function () {
     const uploadUrl = @json(route('admin.posts.upload-thumbnail') ?? '#');
     let isUploadingThumbnail = false;
 
-    if (editorElement && !editorInstance) {
-        ClassicEditor
+    const initEditor = () => {
+        if (!editorElement || editorInstance || !window.ClassicEditor) {
+            return;
+        }
+
+        window.ClassicEditor
             .create(editorElement, {
                 ckfinder: {
                     uploadUrl: "{{ route('upload.image') }}?_token={{ csrf_token() }}"
-                }
+                },
             })
-            .then(editor => {
+            .then((editor) => {
                 editorInstance = editor;
             })
-            .catch(error => {
-                console.error(error);
+            .catch((error) => {
+                console.error('CKEditor init failed:', error);
             });
+    };
+
+    initEditor();
+
+    if (!editorInstance && !window.ClassicEditor) {
+        window.addEventListener('load', initEditor, { once: true });
     }
 
     const setThumbnail = (url) => {
@@ -309,6 +318,16 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        if (!file.type.startsWith('image/')) {
+            setStatus('Chỉ được tải lên file hình ảnh.', 'error');
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            setStatus('Ảnh thumbnail phải nhỏ hơn 5MB.', 'error');
+            return;
+        }
+
         const formData = new FormData();
         formData.append('thumbnail', file);
         formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
@@ -327,7 +346,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
             });
 
-            const payload = await response.json();
+            const payload = await response.json().catch(() => ({
+                message: 'Phản hồi upload không hợp lệ.',
+            }));
 
             if (!response.ok) {
                 throw new Error(payload.message || 'Upload thất bại.');
@@ -344,16 +365,18 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
-    pickerButton?.addEventListener('click', () => fileInput.click());
+    pickerButton?.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        fileInput.click();
+    });
 
     dropzone?.addEventListener('click', (event) => {
         if (event.target.closest('#removeThumbnailButton')) {
             return;
         }
 
-        if (!hiddenInput.value) {
-            fileInput.click();
-        }
+        fileInput.click();
     });
 
     fileInput?.addEventListener('change', (event) => {
@@ -363,6 +386,10 @@ document.addEventListener('DOMContentLoaded', function () {
     ['dragenter', 'dragover'].forEach((eventName) => {
         dropzone?.addEventListener(eventName, (event) => {
             event.preventDefault();
+            event.stopPropagation();
+            if (event.dataTransfer) {
+                event.dataTransfer.dropEffect = 'copy';
+            }
             dropzone.classList.add('border-red-500');
         });
     });
@@ -370,12 +397,14 @@ document.addEventListener('DOMContentLoaded', function () {
     ['dragleave', 'drop'].forEach((eventName) => {
         dropzone?.addEventListener(eventName, (event) => {
             event.preventDefault();
+            event.stopPropagation();
             dropzone.classList.remove('border-red-500');
         });
     });
 
     dropzone?.addEventListener('drop', (event) => {
         event.preventDefault();
+        event.stopPropagation();
         dropzone.classList.remove('border-red-500');
         const [file] = event.dataTransfer.files || [];
         uploadThumbnail(file);
@@ -402,12 +431,17 @@ document.addEventListener('DOMContentLoaded', function () {
 .ck.ck-editor {
     border-radius: 1.5rem;
     overflow: hidden;
+    border: 0 !important;
+    background: transparent !important;
 }
 
 .ck.ck-toolbar {
     border: 1px solid rgb(55 65 81) !important;
     border-bottom: 0 !important;
-    background: #111827 !important;
+    background: #030712 !important;
+    border-top-left-radius: 1.5rem !important;
+    border-top-right-radius: 1.5rem !important;
+    overflow: hidden !important;
 }
 
 .ck.ck-content {
@@ -415,6 +449,11 @@ document.addEventListener('DOMContentLoaded', function () {
     border-top: 0 !important;
     border-bottom-left-radius: 1.5rem !important;
     border-bottom-right-radius: 1.5rem !important;
+}
+
+.ck.ck-toolbar,
+.ck.ck-content {
+    box-shadow: none !important;
 }
 
 .ck.ck-button,
@@ -436,13 +475,40 @@ document.addEventListener('DOMContentLoaded', function () {
 
 .ck-editor__editable {
     min-height: 320px;
-    background: #0b1120 !important;
+    background: #030712 !important;
     color: #ffffff !important;
+    font-size: 16px;
+    line-height: 1.6;
     border-radius: 0 0 1.5rem 1.5rem !important;
+    padding: 1rem 1.25rem !important;
+    cursor: text !important;
+    pointer-events: auto !important;
 }
 
-.ck-editor__editable:focus {
-    box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.45) !important;
+.ck-editor__editable_inline {
+    cursor: text !important;
+    pointer-events: auto !important;
+    background: #030712 !important;
+}
+
+.ck.ck-editor__main > .ck-editor__editable:not(.ck-focused) {
+    border-color: rgb(55 65 81) !important;
+}
+
+.ck.ck-editor__main > .ck-editor__editable.ck-focused {
+    border-color: rgb(239 68 68) !important;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+}
+
+.ck.ck-toolbar:has(+ .ck.ck-editor__main .ck-focused) {
+    border-color: rgb(239 68 68) !important;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+    position: relative;
+    z-index: 1;
+}
+
+.ck.ck-reset_all :not(.ck-reset_all-excluded *) {
+    color: inherit;
 }
 </style>
 @endsection

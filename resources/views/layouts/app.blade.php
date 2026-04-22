@@ -60,7 +60,7 @@
                         <form action="{{ route('movies.index') }}" method="GET" class="flex relative items-center">
                             <input type="text" name="q" id="globalSearchInput" placeholder="Tìm kiếm phim, rạp..."
                                 autocomplete="off"
-                                class="bg-gray-800 border border-gray-700 rounded-full pl-4 pr-10 py-1.5 text-sm text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 w-48 transition-all duration-300 focus:w-64">
+                                class="bg-gray-800 border border-gray-700 rounded-full pl-4 pr-10 py-1.5 text-sm text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 w-48 transition-colors duration-300">
                             <button type="submit"
                                 class="absolute right-3 text-gray-400 hover:text-white transition-colors">
                                 <i class="fa-solid fa-search"></i>

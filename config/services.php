@@ -1,5 +1,8 @@
 <?php
 
+$cloudinaryUrl = env('CLOUDINARY_URL');
+$parsedCloudinaryUrl = $cloudinaryUrl ? parse_url($cloudinaryUrl) : false;
+
 return [
 
     /*
@@ -42,11 +45,12 @@ return [
     ],
 
     'cloudinary' => [
-        'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
-        'api_key' => env('CLOUDINARY_API_KEY'),
-        'api_secret' => env('CLOUDINARY_API_SECRET'),
+        'cloud_name' => env('CLOUDINARY_CLOUD_NAME', $parsedCloudinaryUrl['host'] ?? null),
+        'api_key' => env('CLOUDINARY_API_KEY', $parsedCloudinaryUrl['user'] ?? null),
+        'api_secret' => env('CLOUDINARY_API_SECRET', $parsedCloudinaryUrl['pass'] ?? null),
         'upload_preset' => env('CLOUDINARY_UPLOAD_PRESET'),
         'folder' => env('CLOUDINARY_FOLDER', 'cinebook'),
+        'url' => $cloudinaryUrl,
     ],
 
 ];
