@@ -229,35 +229,18 @@ class MovieController extends Controller
                 })
                 ->values();
 
+            // Sửa lại logic lọc tại đây
             if ($request->filled('q')) {
                 $q = mb_strtolower(trim($request->query('q')), 'UTF-8');
-                $searchedMovies = DB::table('movies')
-                    ->leftJoin('reviews', 'reviews.movie_id', '=', 'movies.id')
-                    ->where(DB::raw('LOWER(movies.name)'), 'like', "%{$q}%")
-                    ->orWhere(DB::raw('LOWER(movies.genre)'), 'like', "%{$q}%")
-                    ->groupBy('movies.id')
-                    ->select('movies.*', DB::raw('AVG(reviews.rating) as average_rating'))
-                    ->get();
-                
-                $searchMoviesFormatted = $searchedMovies->map(function ($m) {
-                    return (object) [
-                        'id' => $m->id,
-                        'name' => $m->name,
-                        'poster' => $m->poster,
-                        'description' => $m->description,
-                        'genre' => $m->genre,
-                        'duration' => $m->duration,
-                        'release_date' => $m->release_date,
-                        'age_limit' => $m->age_limit,
-                        'rating' => $m->average_rating ? round((float) $m->average_rating, 1) : null,
-                        'showtimes' => collect(),
-                    ];
-                });
-
-                // Gộp phim vừa tìm được vào danh sách (bỏ qua nếu đã có)
-                $existingIds = $movies->pluck('id');
-                $searchMoviesFormatted = $searchMoviesFormatted->reject(fn($m) => $existingIds->contains($m->id));
-                $movies = $movies->concat($searchMoviesFormatted)->values();
+                $movies = $movies->filter(function($movie) use ($q) {
+                    $ageLabel = $movie->age_limit ? 't' . $movie->age_limit : 'p';
+                    $cinemaNames = $movie->showtimes->pluck('cinema_name')->unique()->join(' ');
+                    
+                    return str_contains(mb_strtolower($movie->name, 'UTF-8'), $q) || 
+                           str_contains(mb_strtolower($movie->genre ?? '', 'UTF-8'), $q) ||
+                           str_contains(mb_strtolower($ageLabel, 'UTF-8'), $q) ||
+                           str_contains(mb_strtolower($cinemaNames, 'UTF-8'), $q);
+                })->values();
             }
         } catch (QueryException $exception) {
             Log::warning('Movies page schedule query failed.', [

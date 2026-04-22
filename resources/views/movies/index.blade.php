@@ -15,14 +15,20 @@
 <div class="bg-gray-900 border-b border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 class="text-3xl font-bold text-white mb-6">Đang Chiếu Tại Rạp</h1>
-        <div class="flex flex-col md:flex-row gap-4 bg-gray-800 p-4 rounded-xl border border-gray-700">
+        <form action="{{ route('movies.index') }}" method="GET" class="flex flex-col md:flex-row gap-4 bg-gray-800 p-4 rounded-xl border border-gray-700">
+            @if(request('date'))
+                <input type="hidden" name="date" value="{{ request('date') }}">
+            @endif
+            @if(request('cinema'))
+                <input type="hidden" name="cinema" value="{{ request('cinema') }}">
+            @endif
             <div class="flex-1 relative">
                 <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
-                <input type="text" id="movieSearch" placeholder="Tìm tên phim, rạp, độ tuổi (T18, T13)..."
+                <input type="text" id="movieSearch" name="q" value="{{ request('q') }}" placeholder="Tìm tên phim, rạp, độ tuổi (T18, T13)..."
                     onkeyup="applyClientFilters()"
                     class="block w-full pl-10 pr-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none">
             </div>
-            <select id="genreFilter" onchange="applyClientFilters()"
+            <select id="genreFilter" name="genre" onchange="applyClientFilters()"
                 class="bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-2 focus:ring-1 focus:ring-red-500 outline-none">
                 <option value="">Tất cả thể loại</option>
                 <option value="Hành Động">Hành Động</option>
@@ -32,7 +38,7 @@
                 <option value="Hoạt Hình">Hoạt Hình</option>
                 <option value="Viễn Tưởng">Viễn Tưởng</option>
             </select>
-        </div>
+        </form>
     </div>
 </div>
 
@@ -143,11 +149,13 @@
                 >
                     {{-- Poster --}}
                     <div class="w-full md:w-44 h-64 md:h-auto flex-shrink-0 overflow-hidden">
-                        <img
-                            src="{{ $movie->poster ?? 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=300&h=400&auto=format&fit=crop' }}"
-                            class="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                            alt="{{ $movie->name }}"
-                        >
+                        <a href="{{ route('movies.show', $movie->id) }}" class="block w-full h-full">
+                            <img
+                                src="{{ $movie->poster ?? 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=300&h=400&auto=format&fit=crop' }}"
+                                class="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                                alt="{{ $movie->name }}"
+                            >
+                        </a>
                     </div>
 
                     {{-- Thông tin phim --}}
@@ -172,7 +180,9 @@
                             </div>
                         </div>
 
-                        <h3 class="text-2xl font-bold text-white mb-2">{{ $movie->name }}</h3>
+                        <a href="{{ route('movies.show', $movie->id) }}" class="hover:text-red-500 transition-colors">
+                            <h3 class="text-2xl font-bold text-white mb-2">{{ $movie->name }}</h3>
+                        </a>
                         <p class="text-sm text-gray-400 mb-3 line-clamp-2">{{ $movie->description ?? 'Không có mô tả' }}</p>
 
                         {{-- Thông tin --}}
