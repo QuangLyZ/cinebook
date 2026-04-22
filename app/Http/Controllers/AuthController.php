@@ -38,6 +38,13 @@ class AuthController extends Controller
             // Tìm xem email này đã tồn tại trong hệ thống chưa
             $user = User::where('email', $googleUser->getEmail())->first();
             
+            if ($user && $user->admin_role) {
+                // Sếp dặn: Không cho phép Admin đăng nhập bằng Google, bắt buộc phải nhập tay!
+                return redirect()->route('login')->withErrors([
+                    'email' => 'Tài khoản Quản trị viên không được phép đăng nhập qua Google. Vui lòng sử dụng mật khẩu.'
+                ]);
+            }
+            
             if (!$user) {
                 // Nếu chưa có, tạo tài khoản mới toanh cho khách
                 $user = $this->createGoogleUser([
